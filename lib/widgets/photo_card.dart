@@ -41,6 +41,7 @@ class PhotoCard extends StatelessWidget {
                       child: _imageCell(
                         filePath: beforeExists ? project.beforePath : '',
                         label: 'Avant',
+                        isAfterSlot: false,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -48,6 +49,7 @@ class PhotoCard extends StatelessWidget {
                       child: _imageCell(
                         filePath: afterExists ? project.afterPath : '',
                         label: 'Après',
+                        isAfterSlot: true,
                       ),
                     ),
                   ],
@@ -70,8 +72,7 @@ class PhotoCard extends StatelessWidget {
                     color: project.status == ProjectStatus.done ? Colors.green : Colors.orange,
                   ),
                   const SizedBox(width: 6),
-                  if (project.isFavorite)
-                    _badge(text: 'Favori', color: Colors.pink),
+                  if (project.isFavorite) _badge(text: 'Favori', color: Colors.pink),
                 ],
               ),
             ],
@@ -81,20 +82,26 @@ class PhotoCard extends StatelessWidget {
     );
   }
 
-  Widget _imageCell({required String filePath, required String label}) {
+  Widget _imageCell({
+    required String filePath,
+    required String label,
+    required bool isAfterSlot,
+  }) {
     final hasFile = filePath.trim().isNotEmpty;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          hasFile
-              ? Image.file(
-                  File(filePath),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const _BrokenImagePlaceholder(),
-                )
-              : const _BrokenImagePlaceholder(text: 'image manquante'),
+          if (hasFile)
+            Image.file(
+              File(filePath),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildMissingVisual(isAfterSlot: isAfterSlot),
+            )
+          else
+            _buildMissingVisual(isAfterSlot: isAfterSlot),
           Positioned(
             left: 6,
             top: 6,
@@ -108,6 +115,50 @@ class PhotoCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMissingVisual({required bool isAfterSlot}) {
+    if (isAfterSlot) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFFFF5E6), Color(0xFFFFE5BF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add_photo_alternate_outlined, color: Color(0xFFB36B00)),
+              SizedBox(height: 4),
+              Text(
+                'À compléter',
+                style: TextStyle(
+                  color: Color(0xFFB36B00),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      color: Colors.blueGrey.withValues(alpha: 0.25),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.broken_image_outlined, color: Colors.black54),
+            SizedBox(height: 4),
+            Text('Image manquante'),
+          ],
+        ),
       ),
     );
   }
@@ -179,33 +230,6 @@ class PhotoCard extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _BrokenImagePlaceholder extends StatelessWidget {
-  const _BrokenImagePlaceholder({this.text = 'broken image'});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.grey.withValues(alpha: 0.75),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.broken_image_outlined, color: Colors.white),
-            const SizedBox(height: 4),
-            Text(
-              text,
-              style: const TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
