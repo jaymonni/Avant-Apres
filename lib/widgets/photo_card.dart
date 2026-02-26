@@ -24,10 +24,11 @@ class PhotoCard extends StatelessWidget {
     final beforeExists = _exists(project.beforePath);
     final afterExists = _exists(project.afterPath);
 
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: () => _showActions(context),
-      child: Card(
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: () => _showActions(context),
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Column(
@@ -93,7 +94,7 @@ class PhotoCard extends StatelessWidget {
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const _BrokenImagePlaceholder(),
                 )
-              : const _BrokenImagePlaceholder(text: 'placeholder'),
+              : const _BrokenImagePlaceholder(text: 'image manquante'),
           Positioned(
             left: 6,
             top: 6,
@@ -190,12 +191,19 @@ class _BrokenImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Colors.grey,
+      color: Colors.grey.withValues(alpha: 0.75),
       child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white),
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.broken_image_outlined, color: Colors.white),
+            const SizedBox(height: 4),
+            Text(
+              text,
+              style: const TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

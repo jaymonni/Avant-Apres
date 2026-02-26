@@ -67,10 +67,21 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       child: ListTile(
                         title: Text(project.title),
                         subtitle: Text(DateFormat('dd/MM/yyyy').format(project.createdAt)),
+                        leading: const Icon(Icons.photo_library_outlined),
                         onTap: () => _openDetail(project.id),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _confirmDelete(project.id),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.open_in_new),
+                              tooltip: 'Ouvrir',
+                              onPressed: () => _openDetail(project.id),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () => _confirmDelete(project.id),
+                            ),
+                          ],
                         ),
                       ),
                     );
