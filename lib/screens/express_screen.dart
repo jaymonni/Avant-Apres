@@ -198,6 +198,17 @@ class _ExpressScreenState extends State<ExpressScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(_tr('Transformation Express', 'Express Transformation',
           'Transformación exprés', 'Transformação Express'))),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: FilledButton.icon(
+            onPressed: ready && !_busy ? _share : null,
+            icon: const Icon(Icons.share),
+            label: Text(_busy
+                ? _tr('Préparation...', 'Preparing...', 'Preparando...', 'Preparando...')
+                : _tr('Partager la comparaison', 'Share comparison',
+                    'Compartir comparación', 'Compartilhar comparação')),
+          ),,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -251,15 +262,19 @@ class _ExpressScreenState extends State<ExpressScreen> {
               value: _adjust,
               onChanged: (value) => setState(() => _adjust = value),
             ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: ready && !_busy ? _share : null,
-            icon: const Icon(Icons.share),
-            label: Text(_busy
-                ? _tr('Préparation...', 'Preparing...', 'Preparando...', 'Preparando...')
-                : _tr('Partager la comparaison', 'Share comparison',
-                    'Compartir comparación', 'Compartilhar comparação')),
-          ),
+          if (_layout == 2 && ready)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  _beforeController.value = Matrix4.identity();
+                  _afterController.value = Matrix4.identity();
+                  setState(() => _split = 0.5);
+                },
+                icon: const Icon(Icons.restart_alt),
+                label: Text(_tr('Réinitialiser', 'Reset', 'Restablecer', 'Repor')),
+              ),
+            ),
         ],
       ),
     );
