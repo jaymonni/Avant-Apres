@@ -73,7 +73,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
   Widget _image(XFile? file, String label) {
     return Expanded(child: Stack(fit: StackFit.expand, children: [
       if (file != null)
-        Image.file(File(file.path), fit: BoxFit.cover)
+        Image.file(File(file.path), fit: BoxFit.contain)
       else
         ColoredBox(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -100,10 +100,10 @@ class _ExpressScreenState extends State<ExpressScreen> {
     }
     if (_layout == 2 && _before != null && _after != null) {
       return Stack(fit: StackFit.expand, children: [
-        Image.file(File(_before!.path), fit: BoxFit.cover),
+        Image.file(File(_before!.path), fit: BoxFit.contain),
         ClipPath(
           clipper: _RightHalfClipper(),
-          child: Image.file(File(_after!.path), fit: BoxFit.cover),
+          child: Image.file(File(_after!.path), fit: BoxFit.contain),
         ),
         const Center(child: VerticalDivider(width: 2, thickness: 2, color: Colors.white)),
         Positioned(top: 10, left: 10, child: _fusionLabel(AppStrings.before)),
