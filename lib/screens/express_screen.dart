@@ -207,7 +207,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 ? _tr('Préparation...', 'Preparing...', 'Preparando...', 'Preparando...')
                 : _tr('Partager la comparaison', 'Share comparison',
                     'Compartir comparación', 'Compartilhar comparação')),
-          ),,
+          ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
