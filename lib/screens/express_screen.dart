@@ -98,14 +98,33 @@ class _ExpressScreenState extends State<ExpressScreen> {
     if (_layout == 1) {
       return Column(children: [first, const SizedBox(height: 3), second]);
     }
-    if (_layout == 2) {
+    if (_layout == 2 && _before != null && _after != null) {
       return Stack(fit: StackFit.expand, children: [
-        Row(children: [first, second]),
-        const Center(child: VerticalDivider(width: 3, thickness: 3, color: Colors.white)),
+        Image.file(File(_before!.path), fit: BoxFit.cover),
+        ClipPath(
+          clipper: _RightHalfClipper(),
+          child: Image.file(File(_after!.path), fit: BoxFit.cover),
+        ),
+        const Center(child: VerticalDivider(width: 2, thickness: 2, color: Colors.white)),
+        Positioned(top: 10, left: 10, child: _fusionLabel(AppStrings.before)),
+        Positioned(top: 10, right: 10, child: _fusionLabel(AppStrings.after)),
       ]);
     }
     return Row(children: [first, const SizedBox(width: 4), second]);
   }
+
+  Widget _fusionLabel(String label) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: Colors.black87,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Text(label, style: const TextStyle(
+        color: Colors.white, fontWeight: FontWeight.bold,
+      )),
+    ),
+  );
 
   Future<void> _share() async {
     if (_before == null || _after == null || _busy) return;
@@ -176,7 +195,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
             segments: [
               ButtonSegment(value: 0, label: Text(_tr('Côte à côte', 'Side by side', 'Lado a lado', 'Lado a lado'))),
               ButtonSegment(value: 1, label: Text(_tr('Haut / Bas', 'Top / Bottom', 'Arriba / Abajo', 'Cima / Baixo'))),
-              ButtonSegment(value: 2, label: Text(_tr('Séparé', 'Split', 'Dividido', 'Dividido'))),
+              ButtonSegment(value: 2, label: Text(_tr('Fusion 50/50', '50/50 blend', 'Fusión 50/50', 'Fusão 50/50'))),
             ],
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
@@ -194,4 +213,13 @@ class _ExpressScreenState extends State<ExpressScreen> {
       ),
     );
   }
+}
+
+class _RightHalfClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) => Path()
+    ..addRect(Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height));
+
+  @override
+  bool shouldReclip(covariant _RightHalfClipper oldClipper) => false;
 }
