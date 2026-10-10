@@ -7,6 +7,7 @@ import '../models/photo_project.dart';
 import '../providers/app_provider.dart';
 import '../widgets/ad_banner_widget.dart';
 import 'add_project_screen.dart';
+import 'express_screen.dart';
 import 'project_list_screen.dart';
 import 'settings_screen.dart';
 
@@ -82,6 +83,37 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
               _MinimalHeroCard(isDark: isDark),
+              const SizedBox(height: 18),
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: const CircleAvatar(
+                    child: Icon(Icons.auto_fix_high_rounded),
+                  ),
+                  title: Text(
+                    switch (Localizations.localeOf(context).languageCode) {
+                      'fr' => 'Transformation Express',
+                      'es' => 'Transformación exprés',
+                      'pt' => 'Transformação Express',
+                      _ => 'Express Transformation',
+                    },
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: Text(
+                    switch (Localizations.localeOf(context).languageCode) {
+                      'fr' => 'Deux photos, une comparaison, un partage',
+                      'es' => 'Dos fotos, una comparación y compartir',
+                      'pt' => 'Duas fotos, uma comparação e partilha',
+                      _ => 'Two photos, one comparison, easy sharing',
+                    },
+                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ExpressScreen()),
+                  ),
+                ),
+              ),
               const SizedBox(height: 22),
               _ProjectCard(
                 title: AppStrings.inProgress,
