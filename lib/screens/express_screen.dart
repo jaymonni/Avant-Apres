@@ -23,6 +23,26 @@ class _ExpressScreenState extends State<ExpressScreen> {
   XFile? _after;
   int _layout = 0;
   bool _busy = false;
+  double _split = 0.5;
+  bool _adjust = false;
+  final _beforeController = TransformationController();
+  final _afterController = TransformationController();
+
+  @override
+  void dispose() {
+    _beforeController.dispose();
+    _afterController.dispose();
+    super.dispose();
+  }
+
+  Widget _editable(XFile photo, TransformationController controller) => InteractiveViewer(
+    transformationController: controller,
+    panEnabled: _adjust,
+    scaleEnabled: _adjust,
+    minScale: 0.5,
+    maxScale: 5,
+    child: SizedBox.expand(child: Image.file(File(photo.path), fit: BoxFit.contain)),
+  );
 
   String _tr(String fr, String en, String es, String pt) {
     switch (Localizations.localeOf(context).languageCode) {
@@ -99,16 +119,36 @@ class _ExpressScreenState extends State<ExpressScreen> {
       return Column(children: [first, const SizedBox(height: 3), second]);
     }
     if (_layout == 2 && _before != null && _after != null) {
-      return Stack(fit: StackFit.expand, children: [
-        Image.file(File(_before!.path), fit: BoxFit.contain),
-        ClipPath(
-          clipper: _RightHalfClipper(),
-          child: Image.file(File(_after!.path), fit: BoxFit.contain),
-        ),
-        const Center(child: VerticalDivider(width: 2, thickness: 2, color: Colors.white)),
-        Positioned(top: 10, left: 10, child: _fusionLabel(AppStrings.before)),
-        Positioned(top: 10, right: 10, child: _fusionLabel(AppStrings.after)),
-      ]);
+      return LayoutBuilder(builder: (context, size) {
+        final divider = size.maxWidth * _split;
+        return Stack(fit: StackFit.expand, children: [
+          _editable(_before!, _beforeController),
+          ClipRect(
+            clipper: _SplitClipper(_split),
+            child: _editable(_after!, _afterController),
+          ),
+          Positioned(left: divider - 1, top: 0, bottom: 0,
+            child: const SizedBox(width: 2, child: ColoredBox(color: Colors.white))),
+          Positioned(top: 10, left: 10, child: _fusionLabel(AppStrings.before)),
+          Positioned(top: 10, right: 10, child: _fusionLabel(AppStrings.after)),
+          if (!_adjust)
+            Positioned(
+              left: (divider - 24).clamp(0.0, size.maxWidth - 48),
+              top: 0, bottom: 0,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragUpdate: (details) => setState(() {
+                  _split = (_split + details.delta.dx / size.maxWidth).clamp(0.05, 0.95);
+                }),
+                child: Center(child: Container(
+                  width: 48, height: 48,
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: const Icon(Icons.compare_arrows, color: Colors.black),
+                )),
+              ),
+            ),
+        ]);
+      });
     }
     return Row(children: [first, const SizedBox(width: 4), second]);
   }
@@ -200,6 +240,17 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
+          if (_layout == 2 && ready)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos')),
+              subtitle: Text(_tr('Activé : déplacer et zoomer. Désactivé : déplacer le curseur.',
+                'On: pan and zoom. Off: drag divider.',
+                'Activado: mover y ampliar. Desactivado: mover divisor.',
+                'Ativado: mover e ampliar. Desativado: mover divisor.')),
+              value: _adjust,
+              onChanged: (value) => setState(() => _adjust = value),
+            ),
           const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: ready && !_busy ? _share : null,
@@ -215,11 +266,11 @@ class _ExpressScreenState extends State<ExpressScreen> {
   }
 }
 
-class _RightHalfClipper extends CustomClipper<Path> {
+class _SplitClipper extends CustomClipper<Rect> {
+  const _SplitClipper(this.split);
+  final double split;
   @override
-  Path getClip(Size size) => Path()
-    ..addRect(Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height));
-
+  Rect getClip(Size size) => Rect.fromLTRB(size.width * split, 0, size.width, size.height);
   @override
-  bool shouldReclip(covariant _RightHalfClipper oldClipper) => false;
+  bool shouldReclip(covariant _SplitClipper oldClipper) => split != oldClipper.split;
 }
