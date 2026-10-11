@@ -73,6 +73,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
   Future<void> _choose(bool before) async {
     await showModalBottomSheet<void>(
       context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (sheetContext) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
