@@ -322,16 +322,47 @@ class _ExpressScreenState extends State<ExpressScreen> {
             )),
           ]),
           const SizedBox(height: 16),
-          RepaintBoundary(
-            key: _captureKey,
-            child: AspectRatio(
-              aspectRatio: 4 / 5,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: _comparison(),
+          Stack(children: [
+            RepaintBoundary(
+              key: _captureKey,
+              child: AspectRatio(
+                aspectRatio: 4 / 5,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _comparison(),
+                ),
               ),
             ),
-          ),
+            if (ready && (_layout != 2 || _adjust))
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Padding(
+                    padding: _layout == 2
+                        ? EdgeInsets.zero
+                        : _layout == 1
+                            ? EdgeInsets.fromLTRB(0, _editBefore ? 0 : 0, 0, 0)
+                            : EdgeInsets.zero,
+                    child: Align(
+                      alignment: _layout == 2
+                          ? Alignment.center
+                          : _layout == 1
+                              ? (_editBefore ? Alignment.topCenter : Alignment.bottomCenter)
+                              : (_editBefore ? Alignment.centerLeft : Alignment.centerRight),
+                      child: FractionallySizedBox(
+                        widthFactor: _layout == 2 ? 1 : (_layout == 1 ? 1 : 0.5),
+                        heightFactor: _layout == 2 ? 1 : (_layout == 1 ? 0.5 : 1),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.primary, width: 3),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ]),
           const SizedBox(height: 16),
           SegmentedButton<int>(
             segments: [
