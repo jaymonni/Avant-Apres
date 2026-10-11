@@ -77,18 +77,28 @@ class _ExpressScreenState extends State<ExpressScreen> {
       useSafeArea: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (sheetContext) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
+            tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.38),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            leading: Icon(Icons.photo_library_rounded, color: Theme.of(context).colorScheme.primary),
             title: Text(AppStrings.gallery),
             onTap: () { Navigator.pop(sheetContext); _pick(before, ImageSource.gallery); },
           ),
+          const SizedBox(height: 12),
           ListTile(
-            leading: const Icon(Icons.camera_alt_outlined),
+            tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.38),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            leading: Icon(Icons.photo_camera_rounded, color: Theme.of(context).colorScheme.primary),
             title: Text(AppStrings.camera),
             onTap: () { Navigator.pop(sheetContext); _pick(before, ImageSource.camera); },
           ),
-        ]),
+          ]),
+        ),
       ),
     );
   }
