@@ -26,6 +26,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
   double _split = 0.5;
   bool _adjust = false;
   bool _editBefore = true;
+  Offset _palettePosition = const Offset(12, 80);
   final _beforeController = TransformationController();
   final _afterController = TransformationController();
 
@@ -78,20 +79,34 @@ class _ExpressScreenState extends State<ExpressScreen> {
     final colors = Theme.of(context).colorScheme;
     final small = Theme.of(context).textTheme.bodySmall;
     return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [
-          Icon(Icons.tune_rounded, color: colors.primary, size: 20),
-          const SizedBox(width: 8),
-          Text(_tr('Ajuster la photo', 'Adjust photo', 'Ajustar foto', 'Ajustar foto'),
-            style: Theme.of(context).textTheme.titleMedium),
-        ]),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanUpdate: (details) {
+            final area = MediaQuery.sizeOf(context);
+            setState(() => _palettePosition = Offset(
+              (_palettePosition.dx + details.delta.dx).clamp(0.0, (area.width - 292).clamp(0.0, double.infinity)),
+              (_palettePosition.dy + details.delta.dy).clamp(0.0, (area.height - 420).clamp(0.0, double.infinity)),
+            ));
+          },
+          child: Row(children: [
+            Icon(Icons.drag_indicator_rounded, color: colors.primary, size: 22),
+            const SizedBox(width: 6),
+            Expanded(child: Text(_tr('Ajuster la photo', 'Adjust photo', 'Ajustar foto', 'Ajustar foto'),
+              style: Theme.of(context).textTheme.titleSmall)),
+            IconButton(
+              tooltip: _tr('Fermer', 'Close', 'Cerrar', 'Fechar'),
+              onPressed: () => setState(() => _adjust = false),
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ]),
+        ),
         const SizedBox(height: 12),
         SegmentedButton<bool>(
           segments: [
@@ -385,7 +400,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
             ],
           ),
         ),
-        child: ListView(
+        child: Stack(children: [
+          ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
@@ -411,8 +427,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
           Stack(children: [
             RepaintBoundary(
               key: _captureKey,
-              child: SizedBox(
-                height: (MediaQuery.sizeOf(context).height * 0.43).clamp(260.0, 440.0),
+              child: AspectRatio(
+                aspectRatio: 4 / 5,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: _comparison(),
@@ -459,20 +475,6 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
-          if (ready && _layout == 2)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Center(
-                child: OutlinedButton.icon(
-                  onPressed: () => setState(() => _adjust = !_adjust),
-                  icon: Icon(_adjust ? Icons.compare_arrows_rounded : Icons.tune_rounded),
-                  label: Text(_adjust
-                    ? _tr('Déplacer le curseur', 'Move divider', 'Mover divisor', 'Mover divisor')
-                    : _tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos')),
-                ),
-              ),
-            ),
-          if (ready && _layout == 2 && _adjust) _fusionControls(),
           if (ready && _layout != 2)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -544,6 +546,27 @@ class _ExpressScreenState extends State<ExpressScreen> {
             ),
         ],
         ),
+          if (ready && _layout == 2 && !_adjust)
+            Positioned(
+              right: 14, top: 12,
+              child: FloatingActionButton.small(
+                heroTag: 'express_adjust',
+                tooltip: _tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos'),
+                onPressed: () => setState(() => _adjust = true),
+                child: const Icon(Icons.tune_rounded),
+              ),
+            ),
+          if (ready && _layout == 2 && _adjust)
+            Positioned(
+              left: _palettePosition.dx,
+              top: _palettePosition.dy,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(18),
+                child: SizedBox(width: 288, child: _fusionControls()),
+              ),
+            ),
+        ]),
       ),
     );
   }
