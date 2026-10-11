@@ -38,8 +38,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
 
   Widget _editable(XFile photo, TransformationController controller) => InteractiveViewer(
     transformationController: controller,
-    panEnabled: _adjust,
-    scaleEnabled: _adjust,
+    panEnabled: _adjust && (controller == (_editBefore ? _beforeController : _afterController)),
+    scaleEnabled: _adjust && (controller == (_editBefore ? _beforeController : _afterController)),
+    boundaryMargin: const EdgeInsets.all(120),
     minScale: 1,
     maxScale: 5,
     child: SizedBox.expand(child: Image.file(File(photo.path), fit: BoxFit.contain)),
@@ -354,6 +355,10 @@ class _ExpressScreenState extends State<ExpressScreen> {
                   selected: {_editBefore},
                   onSelectionChanged: (value) => setState(() => _editBefore = value.first),
                 ),
+                const SizedBox(height: 8),
+                Text(_tr('Glissez la photo sélectionnée avec le doigt', 'Drag the selected photo with your finger', 'Arrastra la foto seleccionada con el dedo', 'Arraste a foto selecionada com o dedo'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 10),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   IconButton.filledTonal(
