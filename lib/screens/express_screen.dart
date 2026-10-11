@@ -74,6 +74,69 @@ class _ExpressScreenState extends State<ExpressScreen> {
         icon: Icon(icon),
       );
 
+  Widget _fusionControls() {
+    final colors = Theme.of(context).colorScheme;
+    final small = Theme.of(context).textTheme.bodySmall;
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          Icon(Icons.tune_rounded, color: colors.primary, size: 20),
+          const SizedBox(width: 8),
+          Text(_tr('Ajuster la photo', 'Adjust photo', 'Ajustar foto', 'Ajustar foto'),
+            style: Theme.of(context).textTheme.titleMedium),
+        ]),
+        const SizedBox(height: 12),
+        SegmentedButton<bool>(
+          segments: [
+            ButtonSegment(value: true, label: Text(AppStrings.before)),
+            ButtonSegment(value: false, label: Text(AppStrings.after)),
+          ],
+          selected: {_editBefore},
+          onSelectionChanged: (value) => setState(() => _editBefore = value.first),
+        ),
+        const SizedBox(height: 12),
+        Divider(color: colors.outlineVariant, height: 1),
+        const SizedBox(height: 12),
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Expanded(child: Column(children: [
+            Text(_tr('Zoom', 'Zoom', 'Zoom', 'Zoom'), style: small),
+            const SizedBox(height: 8),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              IconButton.filledTonal(
+                tooltip: _tr('Dézoomer', 'Zoom out', 'Alejar', 'Diminuir zoom'),
+                onPressed: () => _zoom(0.8), icon: const Icon(Icons.remove)),
+              const SizedBox(width: 6),
+              IconButton.filledTonal(
+                tooltip: _tr('Zoomer', 'Zoom in', 'Acercar', 'Aumentar zoom'),
+                onPressed: () => _zoom(1.25), icon: const Icon(Icons.add)),
+            ]),
+          ])),
+          const SizedBox(width: 8),
+          Expanded(child: Column(children: [
+            Text(_tr('Déplacement', 'Move', 'Mover', 'Mover'), style: small),
+            _moveButton(Icons.keyboard_arrow_up_rounded,
+              _tr('Haut', 'Up', 'Arriba', 'Cima'), 0, -12),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _moveButton(Icons.keyboard_arrow_left_rounded,
+                _tr('Gauche', 'Left', 'Izquierda', 'Esquerda'), -12, 0),
+              _moveButton(Icons.keyboard_arrow_down_rounded,
+                _tr('Bas', 'Down', 'Abajo', 'Baixo'), 0, 12),
+              _moveButton(Icons.keyboard_arrow_right_rounded,
+                _tr('Droite', 'Right', 'Derecha', 'Direita'), 12, 0),
+            ]),
+          ])),
+        ]),
+      ]),
+    );
+  }
+
   String _tr(String fr, String en, String es, String pt) {
     switch (Localizations.localeOf(context).languageCode) {
       case 'fr': return fr;
@@ -408,7 +471,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 ),
               ),
             ),
-          if (ready && (_layout != 2 || _adjust))
+          if (ready && _layout == 2 && _adjust) _fusionControls(),
+          if (ready && _layout != 2)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(children: [
