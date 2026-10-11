@@ -55,6 +55,25 @@ class _ExpressScreenState extends State<ExpressScreen> {
     setState(() {});
   }
 
+  void _nudge(double dx, double dy) {
+    final controller = _editBefore ? _beforeController : _afterController;
+    final matrix = controller.value.clone();
+    matrix.setTranslationRaw(
+      matrix.entry(0, 3) + dx,
+      matrix.entry(1, 3) + dy,
+      matrix.entry(2, 3),
+    );
+    controller.value = matrix;
+    setState(() {});
+  }
+
+  Widget _moveButton(IconData icon, String tooltip, double dx, double dy) =>
+      IconButton.filledTonal(
+        tooltip: tooltip,
+        onPressed: () => _nudge(dx, dy),
+        icon: Icon(icon),
+      );
+
   String _tr(String fr, String en, String es, String pt) {
     switch (Localizations.localeOf(context).languageCode) {
       case 'fr': return fr;
@@ -414,12 +433,32 @@ class _ExpressScreenState extends State<ExpressScreen> {
                   ),
                 ]),
                 if (_layout == 2)
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    TextButton(onPressed: () => setState(() => _editBefore = true),
-                      child: Text(AppStrings.before)),
-                    TextButton(onPressed: () => setState(() => _editBefore = false),
-                      child: Text(AppStrings.after)),
-                  ]),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(value: true, label: Text(AppStrings.before)),
+                        ButtonSegment(value: false, label: Text(AppStrings.after)),
+                      ],
+                      selected: {_editBefore},
+                      onSelectionChanged: (value) => setState(() => _editBefore = value.first),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Text(_tr('Déplacer par petits pas', 'Move in small steps',
+                  'Mover poco a poco', 'Mover aos poucos'),
+                  style: Theme.of(context).textTheme.bodySmall),
+                _moveButton(Icons.keyboard_arrow_up_rounded,
+                  _tr('Haut', 'Up', 'Arriba', 'Cima'), 0, -12),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  _moveButton(Icons.keyboard_arrow_left_rounded,
+                    _tr('Gauche', 'Left', 'Izquierda', 'Esquerda'), -12, 0),
+                  const SizedBox(width: 48),
+                  _moveButton(Icons.keyboard_arrow_right_rounded,
+                    _tr('Droite', 'Right', 'Derecha', 'Direita'), 12, 0),
+                ]),
+                _moveButton(Icons.keyboard_arrow_down_rounded,
+                  _tr('Bas', 'Down', 'Abajo', 'Baixo'), 0, 12),
               ]),
             ),
           if (ready)
