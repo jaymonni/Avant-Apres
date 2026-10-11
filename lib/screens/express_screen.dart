@@ -217,7 +217,10 @@ class _ExpressScreenState extends State<ExpressScreen> {
         return Stack(fit: StackFit.expand, children: [
           IgnorePointer(
             ignoring: !_adjust || !_editBefore,
-            child: _editable(_before!, _beforeController),
+            child: ClipRect(
+              clipper: _SplitClipper(_split, showLeft: true),
+              child: _editable(_before!, _beforeController),
+            ),
           ),
           IgnorePointer(
             ignoring: !_adjust || _editBefore,
@@ -482,10 +485,14 @@ class _ExpressScreenState extends State<ExpressScreen> {
 }
 
 class _SplitClipper extends CustomClipper<Rect> {
-  const _SplitClipper(this.split);
+  const _SplitClipper(this.split, {this.showLeft = false});
   final double split;
+  final bool showLeft;
   @override
-  Rect getClip(Size size) => Rect.fromLTRB(size.width * split, 0, size.width, size.height);
+  Rect getClip(Size size) => showLeft
+      ? Rect.fromLTRB(0, 0, size.width * split, size.height)
+      : Rect.fromLTRB(size.width * split, 0, size.width, size.height);
   @override
-  bool shouldReclip(covariant _SplitClipper oldClipper) => split != oldClipper.split;
+  bool shouldReclip(covariant _SplitClipper oldClipper) =>
+      split != oldClipper.split || showLeft != oldClipper.showLeft;
 }
