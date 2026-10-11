@@ -212,7 +212,18 @@ class _ExpressScreenState extends State<ExpressScreen> {
                     'Compartir comparación', 'Compartilhar comparação')),
           ),
       ),
-      body: ListView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.09),
+            ],
+          ),
+        ),
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(_tr('Choisissez deux photos pour créer une comparaison.',
@@ -279,6 +290,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
               ),
             ),
         ],
+        ),
       ),
     );
   }
