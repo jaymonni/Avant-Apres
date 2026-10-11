@@ -25,6 +25,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
   bool _busy = false;
   double _split = 0.5;
   bool _adjust = false;
+  bool _editBefore = true;
   final _beforeController = TransformationController();
   final _afterController = TransformationController();
 
@@ -43,6 +44,15 @@ class _ExpressScreenState extends State<ExpressScreen> {
     maxScale: 5,
     child: SizedBox.expand(child: Image.file(File(photo.path), fit: BoxFit.contain)),
   );
+
+  void _zoom(double factor) {
+    final controller = _editBefore ? _beforeController : _afterController;
+    final matrix = controller.value.clone();
+    final current = matrix.getMaxScaleOnAxis();
+    final next = (current * factor).clamp(0.5, 5.0);
+    controller.value = matrix..scale(next / current);
+    setState(() {});
+  }
 
   String _tr(String fr, String en, String es, String pt) {
     switch (Localizations.localeOf(context).languageCode) {
@@ -328,6 +338,40 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 'Ativado: mover e ampliar cada foto. Desativado: usar o controle deslizante.')),
               value: _adjust,
               onChanged: (value) => setState(() => _adjust = value),
+            ),
+          if (ready && _adjust)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(children: [
+                Text(_tr('Photo à ajuster', 'Photo to adjust', 'Foto para ajustar', 'Foto para ajustar'),
+                  style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                SegmentedButton<bool>(
+                  segments: [
+                    ButtonSegment(value: true, label: Text(AppStrings.before)),
+                    ButtonSegment(value: false, label: Text(AppStrings.after)),
+                  ],
+                  selected: {_editBefore},
+                  onSelectionChanged: (value) => setState(() => _editBefore = value.first),
+                ),
+                const SizedBox(height: 10),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  IconButton.filledTonal(
+                    tooltip: _tr('Dézoomer', 'Zoom out', 'Alejar', 'Diminuir zoom'),
+                    onPressed: () => _zoom(0.8),
+                    icon: const Icon(Icons.remove),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(_tr('Zoom', 'Zoom', 'Zoom', 'Zoom'),
+                    style: Theme.of(context).textTheme.labelLarge),
+                  const SizedBox(width: 20),
+                  IconButton.filledTonal(
+                    tooltip: _tr('Zoomer', 'Zoom in', 'Acercar', 'Aumentar zoom'),
+                    onPressed: () => _zoom(1.25),
+                    icon: const Icon(Icons.add),
+                  ),
+                ]),
+              ]),
             ),
           if (ready)
             Align(
