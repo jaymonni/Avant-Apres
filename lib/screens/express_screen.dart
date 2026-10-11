@@ -58,7 +58,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
       final file = await _picker.pickImage(source: source, imageQuality: 90);
       if (!mounted || file == null) return;
       setState(() {
-        if (before) { _before = file; } else { _after = file; }
+        if (before) { _before = file; _beforeController.value = Matrix4.identity(); } else { _after = file; _afterController.value = Matrix4.identity(); }
       });
     } catch (_) {
       if (mounted) {
@@ -146,10 +146,10 @@ class _ExpressScreenState extends State<ExpressScreen> {
     );
   }
 
-  Widget _image(XFile? file, String label) {
+  Widget _image(XFile? file, String label, TransformationController controller) {
     return Expanded(child: Stack(fit: StackFit.expand, children: [
       if (file != null)
-        Image.file(File(file.path), fit: BoxFit.contain)
+        _editable(file, controller)
       else
         ColoredBox(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -169,8 +169,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
   }
 
   Widget _comparison() {
-    final first = _image(_before, AppStrings.before);
-    final second = _image(_after, AppStrings.after);
+    final first = _image(_before, AppStrings.before, _beforeController);
+    final second = _image(_after, AppStrings.after, _afterController);
     if (_layout == 1) {
       return Column(children: [first, const SizedBox(height: 3), second]);
     }
@@ -318,18 +318,18 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
-          if (_layout == 2 && ready)
+          if (ready)
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(_tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos')),
-              subtitle: Text(_tr('Activé : déplacer et zoomer. Désactivé : déplacer le curseur.',
-                'On: pan and zoom. Off: drag divider.',
-                'Activado: mover y ampliar. Desactivado: mover divisor.',
-                'Ativado: mover e ampliar. Desativado: mover divisor.')),
+              subtitle: Text(_tr('Activé : déplacer et zoomer chaque photo. Désactivé : utiliser le curseur en fusion.',
+                'On: pan and zoom each photo. Off: use the blend slider.',
+                'Activado: mover y ampliar cada foto. Desactivado: usar el deslizador.',
+                'Ativado: mover e ampliar cada foto. Desativado: usar o controle deslizante.')),
               value: _adjust,
               onChanged: (value) => setState(() => _adjust = value),
             ),
-          if (_layout == 2 && ready)
+          if (ready)
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
