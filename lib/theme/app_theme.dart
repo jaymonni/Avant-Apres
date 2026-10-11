@@ -18,7 +18,15 @@ class AppTheme {
         surface: palette.card,
       ),
       scaffoldBackgroundColor: palette.background,
-      textTheme: GoogleFonts.interTextTheme(),
+      textTheme: GoogleFonts.interTextTheme().copyWith(
+        headlineSmall: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w800),
+        titleLarge: GoogleFonts.inter(fontSize: 21, fontWeight: FontWeight.w800),
+        titleMedium: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w700),
+        titleSmall: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700),
+        bodyLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400),
+        bodyMedium: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
+        labelLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+      ),
     );
 
     return base.copyWith(
@@ -28,6 +36,12 @@ class AppTheme {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: isDark ? Colors.white : Colors.black,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(textStyle: const TextStyle(fontWeight: FontWeight.w700)),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(textStyle: const TextStyle(fontWeight: FontWeight.w700)),
       ),
       cardTheme: CardThemeData(
         color: palette.card,
