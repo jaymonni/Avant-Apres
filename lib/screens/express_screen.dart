@@ -386,7 +386,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
           ),
         ),
         child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           Text(_tr('Choisissez deux photos pour créer une comparaison.',
               'Choose two photos to create a comparison.',
@@ -410,8 +411,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
           Stack(children: [
             RepaintBoundary(
               key: _captureKey,
-              child: AspectRatio(
-                aspectRatio: 4 / 5,
+              child: SizedBox(
+                height: (MediaQuery.sizeOf(context).height * 0.43).clamp(260.0, 440.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: _comparison(),
