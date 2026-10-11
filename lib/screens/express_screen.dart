@@ -40,7 +40,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
     transformationController: controller,
     panEnabled: _adjust,
     scaleEnabled: _adjust,
-    minScale: 0.5,
+    minScale: 1,
     maxScale: 5,
     child: SizedBox.expand(child: Image.file(File(photo.path), fit: BoxFit.contain)),
   );
@@ -49,7 +49,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
     final controller = _editBefore ? _beforeController : _afterController;
     final matrix = controller.value.clone();
     final current = matrix.getMaxScaleOnAxis();
-    final next = (current * factor).clamp(0.5, 5.0);
+    final next = (current * factor).clamp(1.0, 5.0);
     controller.value = matrix..scale(next / current);
     setState(() {});
   }
