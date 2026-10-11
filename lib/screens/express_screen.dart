@@ -38,8 +38,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
 
   Widget _editable(XFile photo, TransformationController controller) => InteractiveViewer(
     transformationController: controller,
-    panEnabled: _adjust && (controller == (_editBefore ? _beforeController : _afterController)),
-    scaleEnabled: _adjust && (controller == (_editBefore ? _beforeController : _afterController)),
+    panEnabled: _layout != 2 || _adjust,
+    scaleEnabled: _layout != 2 || _adjust,
     boundaryMargin: const EdgeInsets.all(120),
     minScale: 1,
     maxScale: 5,
@@ -158,9 +158,16 @@ class _ExpressScreenState extends State<ExpressScreen> {
   }
 
   Widget _image(XFile? file, String label, TransformationController controller) {
+    final before = controller == _beforeController;
     return Expanded(child: Stack(fit: StackFit.expand, children: [
       if (file != null)
-        _editable(file, controller)
+        Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: (_) {
+            if (_editBefore != before) setState(() => _editBefore = before);
+          },
+          child: _editable(file, controller),
+        )
       else
         ColoredBox(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -189,10 +196,16 @@ class _ExpressScreenState extends State<ExpressScreen> {
       return LayoutBuilder(builder: (context, size) {
         final divider = size.maxWidth * _split;
         return Stack(fit: StackFit.expand, children: [
-          _editable(_before!, _beforeController),
-          ClipRect(
-            clipper: _SplitClipper(_split),
-            child: _editable(_after!, _afterController),
+          IgnorePointer(
+            ignoring: !_adjust || !_editBefore,
+            child: _editable(_before!, _beforeController),
+          ),
+          IgnorePointer(
+            ignoring: !_adjust || _editBefore,
+            child: ClipRect(
+              clipper: _SplitClipper(_split),
+              child: _editable(_after!, _afterController),
+            ),
           ),
           Positioned(left: divider - 1, top: 0, bottom: 0,
             child: const SizedBox(width: 2, child: ColoredBox(color: Colors.white))),
@@ -329,53 +342,53 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
-          if (ready)
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(_tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos')),
-              subtitle: Text(_tr('Activé : déplacer et zoomer chaque photo. Désactivé : utiliser le curseur en fusion.',
-                'On: pan and zoom each photo. Off: use the blend slider.',
-                'Activado: mover y ampliar cada foto. Desactivado: usar el deslizador.',
-                'Ativado: mover e ampliar cada foto. Desativado: usar o controle deslizante.')),
-              value: _adjust,
-              onChanged: (value) => setState(() => _adjust = value),
+          if (ready && _layout == 2)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Center(
+                child: OutlinedButton.icon(
+                  onPressed: () => setState(() => _adjust = !_adjust),
+                  icon: Icon(_adjust ? Icons.compare_arrows_rounded : Icons.tune_rounded),
+                  label: Text(_adjust
+                    ? _tr('Déplacer le curseur', 'Move divider', 'Mover divisor', 'Mover divisor')
+                    : _tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos')),
+                ),
+              ),
             ),
-          if (ready && _adjust)
+          if (ready && (_layout != 2 || _adjust))
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(children: [
-                Text(_tr('Photo à ajuster', 'Photo to adjust', 'Foto para ajustar', 'Foto para ajustar'),
-                  style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                SegmentedButton<bool>(
-                  segments: [
-                    ButtonSegment(value: true, label: Text(AppStrings.before)),
-                    ButtonSegment(value: false, label: Text(AppStrings.after)),
-                  ],
-                  selected: {_editBefore},
-                  onSelectionChanged: (value) => setState(() => _editBefore = value.first),
-                ),
-                const SizedBox(height: 8),
-                Text(_tr('Glissez la photo sélectionnée avec le doigt', 'Drag the selected photo with your finger', 'Arrastra la foto seleccionada con el dedo', 'Arraste a foto selecionada com o dedo'),
+                Text(_tr('Touchez la photo à ajuster, puis glissez-la ou zoomez.',
+                  'Tap the photo to adjust, then drag or zoom.',
+                  'Toca la foto, luego arrástrala o amplíala.',
+                  'Toque na foto, depois arraste ou amplie.'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 10),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(_editBefore ? AppStrings.before : AppStrings.after,
+                    style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(width: 18),
                   IconButton.filledTonal(
                     tooltip: _tr('Dézoomer', 'Zoom out', 'Alejar', 'Diminuir zoom'),
                     onPressed: () => _zoom(0.8),
                     icon: const Icon(Icons.remove),
                   ),
-                  const SizedBox(width: 20),
-                  Text(_tr('Zoom', 'Zoom', 'Zoom', 'Zoom'),
-                    style: Theme.of(context).textTheme.labelLarge),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 12),
                   IconButton.filledTonal(
                     tooltip: _tr('Zoomer', 'Zoom in', 'Acercar', 'Aumentar zoom'),
                     onPressed: () => _zoom(1.25),
                     icon: const Icon(Icons.add),
                   ),
                 ]),
+                if (_layout == 2)
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    TextButton(onPressed: () => setState(() => _editBefore = true),
+                      child: Text(AppStrings.before)),
+                    TextButton(onPressed: () => setState(() => _editBefore = false),
+                      child: Text(AppStrings.after)),
+                  ]),
               ]),
             ),
           if (ready)
