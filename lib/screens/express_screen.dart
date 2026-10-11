@@ -71,32 +71,75 @@ class _ExpressScreenState extends State<ExpressScreen> {
   }
 
   Future<void> _choose(bool before) async {
+    final colors = Theme.of(context).colorScheme;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (sheetContext) => SafeArea(
+      backgroundColor: colors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 42),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _tr('Ajouter une photo', 'Add a photo', 'Añadir una foto', 'Adicionar uma foto'),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(children: [
+            Expanded(child: _photoSourceCard(
+              icon: Icons.photo_library_rounded,
+              label: AppStrings.gallery,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _pick(before, ImageSource.gallery);
+              },
+            )),
+            const SizedBox(width: 14),
+            Expanded(child: _photoSourceCard(
+              icon: Icons.photo_camera_rounded,
+              label: AppStrings.camera,
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _pick(before, ImageSource.camera);
+              },
+            )),
+          ]),
+        ]),
+      ),
+    );
+  }
+
+  Widget _photoSourceCard({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.primaryContainer.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.38),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            leading: Icon(Icons.photo_library_rounded, color: Theme.of(context).colorScheme.primary),
-            title: Text(AppStrings.gallery),
-            onTap: () { Navigator.pop(sheetContext); _pick(before, ImageSource.gallery); },
-          ),
-          const SizedBox(height: 12),
-          ListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.38),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            leading: Icon(Icons.photo_camera_rounded, color: Theme.of(context).colorScheme.primary),
-            title: Text(AppStrings.camera),
-            onTap: () { Navigator.pop(sheetContext); _pick(before, ImageSource.camera); },
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+          child: Column(children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: colors.primary,
+              child: Icon(icon, color: colors.onPrimary, size: 28),
+            ),
+            const SizedBox(height: 14),
+            Text(label, textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w700)),
           ]),
         ),
       ),
