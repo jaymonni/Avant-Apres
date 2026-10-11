@@ -532,9 +532,17 @@ class _ExpressScreenState extends State<ExpressScreen> {
               ]),
             ),
           if (ready)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              if (_layout == 2)
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: () => setState(() => _adjust = !_adjust),
+                  icon: Icon(_adjust ? Icons.close_rounded : Icons.tune_rounded),
+                  label: Text(_adjust
+                    ? _tr('Fermer', 'Close', 'Cerrar', 'Fechar')
+                    : _tr('Ajuster', 'Adjust', 'Ajustar', 'Ajustar')),
+                )),
+              if (_layout == 2) const SizedBox(width: 8),
+              TextButton.icon(
                 onPressed: () {
                   _beforeController.value = Matrix4.identity();
                   _afterController.value = Matrix4.identity();
@@ -543,19 +551,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 icon: const Icon(Icons.restart_alt),
                 label: Text(_tr('Réinitialiser', 'Reset', 'Restablecer', 'Repor')),
               ),
-            ),
+            ]),
         ],
         ),
-          if (ready && _layout == 2 && !_adjust)
-            Positioned(
-              right: 14, top: 12,
-              child: FloatingActionButton.small(
-                heroTag: 'express_adjust',
-                tooltip: _tr('Ajuster les photos', 'Adjust photos', 'Ajustar fotos', 'Ajustar fotos'),
-                onPressed: () => setState(() => _adjust = true),
-                child: const Icon(Icons.tune_rounded),
-              ),
-            ),
           if (ready && _layout == 2 && _adjust)
             Positioned(
               left: _palettePosition.dx,
