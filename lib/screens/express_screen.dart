@@ -79,7 +79,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
     final colors = Theme.of(context).colorScheme;
     final small = Theme.of(context).textTheme.bodySmall;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
@@ -107,7 +107,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
             ),
           ]),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         SegmentedButton<bool>(
           segments: [
             ButtonSegment(value: true, label: Text(AppStrings.before)),
@@ -116,9 +116,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
           selected: {_editBefore},
           onSelectionChanged: (value) => setState(() => _editBefore = value.first),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Divider(color: colors.outlineVariant, height: 1),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(child: Column(children: [
             Text(_tr('Zoom', 'Zoom', 'Zoom', 'Zoom'), style: small),
@@ -136,30 +136,29 @@ class _ExpressScreenState extends State<ExpressScreen> {
           const SizedBox(width: 8),
           Expanded(child: Column(children: [
             Text(_tr('Déplacement', 'Move', 'Mover', 'Mover'), style: small),
-            _moveButton(Icons.keyboard_arrow_up_rounded,
-              _tr('Haut', 'Up', 'Arriba', 'Cima'), 0, -12),
+            SizedBox(height: 40, width: 40, child: IconButton.filledTonal(
+              padding: EdgeInsets.zero,
+              tooltip: _tr('Haut', 'Up', 'Arriba', 'Cima'),
+              onPressed: () => _nudge(0, -12),
+              icon: const Icon(Icons.keyboard_arrow_up_rounded),
+            )),
+            const SizedBox(height: 4),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              SizedBox(width: 36, child: IconButton(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                tooltip: _tr('Gauche', 'Left', 'Izquierda', 'Esquerda'),
-                onPressed: () => _nudge(-12, 0),
-                icon: const Icon(Icons.keyboard_arrow_left_rounded),
-              )),
-              SizedBox(width: 36, child: IconButton(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                tooltip: _tr('Bas', 'Down', 'Abajo', 'Baixo'),
-                onPressed: () => _nudge(0, 12),
-                icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              )),
-              SizedBox(width: 36, child: IconButton(
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                tooltip: _tr('Droite', 'Right', 'Derecha', 'Direita'),
-                onPressed: () => _nudge(12, 0),
-                icon: const Icon(Icons.keyboard_arrow_right_rounded),
-              )),
+              for (final direction in <(IconData, double, double)>[
+                (Icons.keyboard_arrow_left_rounded, -12, 0),
+                (Icons.keyboard_arrow_down_rounded, 0, 12),
+                (Icons.keyboard_arrow_right_rounded, 12, 0),
+              ])
+                SizedBox(width: 40, height: 40, child: IconButton.filledTonal(
+                  padding: EdgeInsets.zero,
+                  tooltip: direction.$1 == Icons.keyboard_arrow_left_rounded
+                      ? _tr('Gauche', 'Left', 'Izquierda', 'Esquerda')
+                      : direction.$1 == Icons.keyboard_arrow_down_rounded
+                          ? _tr('Bas', 'Down', 'Abajo', 'Baixo')
+                          : _tr('Droite', 'Right', 'Derecha', 'Direita'),
+                  onPressed: () => _nudge(direction.$2, direction.$3),
+                  icon: Icon(direction.$1),
+                )),
             ]),
           ])),
         ]),
@@ -417,7 +416,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
         ),
         child: Stack(children: [
           ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
           Text(_tr('Choisissez deux photos pour créer une comparaison.',
