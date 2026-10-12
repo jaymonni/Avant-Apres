@@ -579,77 +579,14 @@ class _ExpressScreenState extends State<ExpressScreen> {
           ),
           if (ready)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(children: [
+                Expanded(child: OutlinedButton.icon(
                   onPressed: _editLabels,
-                  icon: const Icon(Icons.edit_note_rounded),
-                  label: Text(_tr('Personnaliser Avant / Après',
-                    'Customize Before / After', 'Personalizar Antes / Después',
-                    'Personalizar Antes / Depois')),
-                ),
-              ),
-            ),
-          if (ready && _layout != 2)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Column(children: [
-                Text(_tr('Touchez la photo à ajuster, puis glissez-la ou zoomez.',
-                  'Tap the photo to adjust, then drag or zoom.',
-                  'Toca la foto, luego arrástrala o amplíala.',
-                  'Toque na foto, depois arraste ou amplie.'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 10),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(_editBefore ? AppStrings.before : AppStrings.after,
-                    style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(width: 18),
-                  IconButton.filledTonal(
-                    tooltip: _tr('Dézoomer', 'Zoom out', 'Alejar', 'Diminuir zoom'),
-                    onPressed: () => _zoom(0.8),
-                    icon: const Icon(Icons.remove),
-                  ),
-                  const SizedBox(width: 12),
-                  IconButton.filledTonal(
-                    tooltip: _tr('Zoomer', 'Zoom in', 'Acercar', 'Aumentar zoom'),
-                    onPressed: () => _zoom(1.25),
-                    icon: const Icon(Icons.add),
-                  ),
-                ]),
-                if (_layout == 2)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: SegmentedButton<bool>(
-                      segments: [
-                        ButtonSegment(value: true, label: Text(AppStrings.before)),
-                        ButtonSegment(value: false, label: Text(AppStrings.after)),
-                      ],
-                      selected: {_editBefore},
-                      onSelectionChanged: (value) => setState(() => _editBefore = value.first),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                Text(_tr('Déplacer par petits pas', 'Move in small steps',
-                  'Mover poco a poco', 'Mover aos poucos'),
-                  style: Theme.of(context).textTheme.bodySmall),
-                _moveButton(Icons.keyboard_arrow_up_rounded,
-                  _tr('Haut', 'Up', 'Arriba', 'Cima'), 0, -12),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  _moveButton(Icons.keyboard_arrow_left_rounded,
-                    _tr('Gauche', 'Left', 'Izquierda', 'Esquerda'), -12, 0),
-                  const SizedBox(width: 48),
-                  _moveButton(Icons.keyboard_arrow_right_rounded,
-                    _tr('Droite', 'Right', 'Derecha', 'Direita'), 12, 0),
-                ]),
-                _moveButton(Icons.keyboard_arrow_down_rounded,
-                  _tr('Bas', 'Down', 'Abajo', 'Baixo'), 0, 12),
-              ]),
-            ),
-          if (ready)
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              if (_layout == 2)
+                  icon: const Icon(Icons.text_fields_rounded),
+                  label: Text(_tr('Texte', 'Text', 'Texto', 'Texto')),
+                )),
+                const SizedBox(width: 8),
                 Expanded(child: OutlinedButton.icon(
                   onPressed: () => setState(() => _adjust = !_adjust),
                   icon: Icon(_adjust ? Icons.close_rounded : Icons.tune_rounded),
@@ -657,20 +594,21 @@ class _ExpressScreenState extends State<ExpressScreen> {
                     ? _tr('Fermer', 'Close', 'Cerrar', 'Fechar')
                     : _tr('Ajuster', 'Adjust', 'Ajustar', 'Ajustar')),
                 )),
-              if (_layout == 2) const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () {
-                  _beforeController.value = Matrix4.identity();
-                  _afterController.value = Matrix4.identity();
-                  setState(() => _split = 0.5);
-                },
-                icon: const Icon(Icons.restart_alt),
-                label: Text(_tr('Réinitialiser', 'Reset', 'Restablecer', 'Repor')),
-              ),
-            ]),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: _tr('Réinitialiser', 'Reset', 'Restablecer', 'Repor'),
+                  onPressed: () {
+                    _beforeController.value = Matrix4.identity();
+                    _afterController.value = Matrix4.identity();
+                    setState(() => _split = 0.5);
+                  },
+                  icon: const Icon(Icons.restart_alt_rounded),
+                ),
+              ]),
+            ),
         ],
         ),
-          if (ready && _layout == 2 && _adjust)
+          if (ready && _adjust)
             Positioned(
               left: _palettePosition.dx,
               top: _palettePosition.dy,
