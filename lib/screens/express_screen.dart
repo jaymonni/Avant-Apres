@@ -27,6 +27,91 @@ class _ExpressScreenState extends State<ExpressScreen> {
   bool _adjust = false;
   bool _editBefore = true;
   Offset _palettePosition = const Offset(12, 80);
+  String? _beforeLabel;
+  String? _afterLabel;
+  bool _labelsAtBottom = false;
+  int _labelColor = 0;
+
+  String get _beforeText => _beforeLabel ?? AppStrings.before;
+  String get _afterText => _afterLabel ?? AppStrings.after;
+  Color get _labelBackground => const [
+    Colors.black87, Color(0xFF1565C0), Color(0xFF2E7D32),
+    Color(0xFFAD1457),
+  ][_labelColor];
+
+  Future<void> _editLabels() async {
+    final before = TextEditingController(text: _beforeText);
+    final after = TextEditingController(text: _afterText);
+    var bottom = _labelsAtBottom;
+    var color = _labelColor;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, updateSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 8, 20,
+            MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
+          child: SingleChildScrollView(child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_tr('Personnaliser les étiquettes', 'Customize labels',
+                'Personalizar etiquetas', 'Personalizar etiquetas'),
+                style: Theme.of(sheetContext).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              TextField(controller: before, maxLength: 24,
+                decoration: InputDecoration(labelText: AppStrings.before,
+                  border: const OutlineInputBorder())),
+              const SizedBox(height: 8),
+              TextField(controller: after, maxLength: 24,
+                decoration: InputDecoration(labelText: AppStrings.after,
+                  border: const OutlineInputBorder())),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(_tr('Étiquettes en bas', 'Labels at bottom',
+                  'Etiquetas abajo', 'Etiquetas em baixo')),
+                value: bottom,
+                onChanged: (value) => updateSheet(() => bottom = value),
+              ),
+              Text(_tr('Couleur', 'Color', 'Color', 'Cor')),
+              const SizedBox(height: 8),
+              Wrap(spacing: 12, children: [
+                for (var i = 0; i < 4; i++)
+                  IconButton.filled(
+                    tooltip: '${i + 1}',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const [Colors.black87,
+                        Color(0xFF1565C0), Color(0xFF2E7D32),
+                        Color(0xFFAD1457)][i]),
+                    onPressed: () => updateSheet(() => color = i),
+                    icon: Icon(color == i ? Icons.check : Icons.circle_outlined,
+                      color: Colors.white),
+                  ),
+              ]),
+              const SizedBox(height: 16),
+              SizedBox(width: double.infinity, child: FilledButton(
+                onPressed: () {
+                  setState(() {
+                    _beforeLabel = before.text.trim().isEmpty
+                        ? null : before.text.trim();
+                    _afterLabel = after.text.trim().isEmpty
+                        ? null : after.text.trim();
+                    _labelsAtBottom = bottom;
+                    _labelColor = color;
+                  });
+                  Navigator.pop(sheetContext);
+                },
+                child: Text(_tr('Appliquer', 'Apply', 'Aplicar', 'Aplicar')),
+              )),
+            ],
+          )),
+        ),
+      ),
+    );
+    before.dispose();
+    after.dispose();
+  }
   final _beforeController = TransformationController();
   final _afterController = TransformationController();
 
@@ -285,9 +370,11 @@ class _ExpressScreenState extends State<ExpressScreen> {
           child: const Center(child: Icon(Icons.add_photo_alternate_outlined, size: 44)),
         ),
       Positioned(
-        top: 10, left: 10,
+        top: _labelsAtBottom ? null : 10,
+        bottom: _labelsAtBottom ? 10 : null,
+        left: 10,
         child: DecoratedBox(
-          decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: _labelBackground, borderRadius: BorderRadius.circular(8)),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -298,8 +385,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
   }
 
   Widget _comparison() {
-    final first = _image(_before, AppStrings.before, _beforeController);
-    final second = _image(_after, AppStrings.after, _afterController);
+    final first = _image(_before, _beforeText, _beforeController);
+    final second = _image(_after, _afterText, _afterController);
     if (_layout == 1) {
       return Column(children: [first, const SizedBox(height: 3), second]);
     }
@@ -323,8 +410,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
           ),
           Positioned(left: divider - 1, top: 0, bottom: 0,
             child: const SizedBox(width: 2, child: ColoredBox(color: Colors.white))),
-          Positioned(top: 10, left: 10, child: _fusionLabel(AppStrings.before)),
-          Positioned(top: 10, right: 10, child: _fusionLabel(AppStrings.after)),
+          Positioned(top: _labelsAtBottom ? null : 10, bottom: _labelsAtBottom ? 10 : null, left: 10, child: _fusionLabel(_beforeText)),
+          Positioned(top: _labelsAtBottom ? null : 10, bottom: _labelsAtBottom ? 10 : null, right: 10, child: _fusionLabel(_afterText)),
           if (!_adjust)
             Positioned(
               left: (divider - 24).clamp(0.0, size.maxWidth - 48),
@@ -349,7 +436,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
 
   Widget _fusionLabel(String label) => DecoratedBox(
     decoration: BoxDecoration(
-      color: Colors.black87,
+      color: _labelBackground,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Padding(
@@ -490,6 +577,20 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
+          if (ready)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _editLabels,
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: Text(_tr('Personnaliser Avant / Après',
+                    'Customize Before / After', 'Personalizar Antes / Después',
+                    'Personalizar Antes / Depois')),
+                ),
+              ),
+            ),
           if (ready && _layout != 2)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
