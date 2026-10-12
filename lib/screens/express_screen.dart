@@ -40,8 +40,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
   ][_labelColor];
 
   Future<void> _editLabels() async {
-    final before = TextEditingController(text: _beforeText);
-    final after = TextEditingController(text: _afterText);
+    var beforeText = _beforeText;
+    var afterText = _afterText;
     var bottom = _labelsAtBottom;
     var color = _labelColor;
     await showModalBottomSheet<void>(
@@ -60,11 +60,13 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 'Personalizar etiquetas', 'Personalizar etiquetas'),
                 style: Theme.of(sheetContext).textTheme.titleLarge),
               const SizedBox(height: 16),
-              TextField(controller: before, maxLength: 24,
+              TextFormField(initialValue: beforeText, maxLength: 24,
+                onChanged: (value) => beforeText = value,
                 decoration: InputDecoration(labelText: AppStrings.before,
                   border: const OutlineInputBorder())),
               const SizedBox(height: 8),
-              TextField(controller: after, maxLength: 24,
+              TextFormField(initialValue: afterText, maxLength: 24,
+                onChanged: (value) => afterText = value,
                 decoration: InputDecoration(labelText: AppStrings.after,
                   border: const OutlineInputBorder())),
               SwitchListTile(
@@ -93,10 +95,10 @@ class _ExpressScreenState extends State<ExpressScreen> {
               SizedBox(width: double.infinity, child: FilledButton(
                 onPressed: () {
                   setState(() {
-                    _beforeLabel = before.text.trim().isEmpty
-                        ? null : before.text.trim();
-                    _afterLabel = after.text.trim().isEmpty
-                        ? null : after.text.trim();
+                    _beforeLabel = beforeText.trim().isEmpty
+                        ? null : beforeText.trim();
+                    _afterLabel = afterText.trim().isEmpty
+                        ? null : afterText.trim();
                     _labelsAtBottom = bottom;
                     _labelColor = color;
                   });
@@ -109,8 +111,6 @@ class _ExpressScreenState extends State<ExpressScreen> {
         ),
       ),
     );
-    before.dispose();
-    after.dispose();
   }
   final _beforeController = TransformationController();
   final _afterController = TransformationController();
