@@ -153,13 +153,6 @@ class _ExpressScreenState extends State<ExpressScreen> {
     setState(() {});
   }
 
-  Widget _moveButton(IconData icon, String tooltip, double dx, double dy) =>
-      IconButton.filledTonal(
-        tooltip: tooltip,
-        onPressed: () => _nudge(dx, dy),
-        icon: Icon(icon),
-      );
-
   Widget _fusionControls() {
     final colors = Theme.of(context).colorScheme;
     final small = Theme.of(context).textTheme.bodySmall;
