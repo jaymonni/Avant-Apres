@@ -20,6 +20,7 @@ dependencies:
   path_provider: ^2.1.3
   image_picker: ^1.1.2
   share_plus: ^11.1.0
+  gal: ^2.3.2
   google_fonts: ^6.2.1
   google_mobile_ads: ^6.0.0
   crop_your_image: ^2.0.0
