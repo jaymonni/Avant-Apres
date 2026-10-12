@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:gal/gal.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -448,25 +449,59 @@ class _ExpressScreenState extends State<ExpressScreen> {
     ),
   );
 
-  Future<void> _share() async {
-    if (_before == null || _after == null || _busy) return;
-    setState(() => _busy = true);
+  (int, int) get _outputSize => switch (_exportFormat) {
+    1 => (1080, 1080),
+    2 => (1080, 1350),
+    3 => (1080, 1920),
+    _ => (1080, 1350),
+  };
+
+  Future<File> _renderExport() async {
+    final boundary = _captureKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary) {
+      throw StateError('Preview unavailable');
+    }
+    // Render at the chosen output width, independent of screen pixel density.
+    final (width, height) = _outputSize;
+    final pixelRatio = width / boundary.size.width;
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
     try {
-      final boundary = _captureKey.currentContext?.findRenderObject();
-      if (boundary is! RenderRepaintBoundary) {
-        throw StateError('Preview unavailable');
+      if (image.width != width || image.height != height) {
+        throw StateError('Unexpected export dimensions');
       }
-      final image = await boundary.toImage(pixelRatio: 3);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       if (data == null) throw StateError('PNG unavailable');
       final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/express_${DateTime.now().millisecondsSinceEpoch}.png');
+      final file = File('${dir.path}/avant_apres_${DateTime.now().millisecondsSinceEpoch}.png');
       await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+      return file;
+    } finally {
+      image.dispose();
+    }
+  }
+
+  Future<void> _export({required bool save}) async {
+    if (_before == null || _after == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      final file = await _renderExport();
+      if (save) {
+        await Gal.putImage(file.path, album: 'Avant Apres');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(_tr('Image enregistrée dans la galerie',
+              'Image saved to gallery', 'Imagen guardada en la galería',
+              'Imagem guardada na galeria')),
+          ));
+        }
+      } else {
+        await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_tr('Export impossible', 'Export failed', 'Error al exportar', 'Falha ao exportar')),
+          content: Text(_tr('Export impossible', 'Export failed',
+            'Error al exportar', 'Falha ao exportar')),
         ));
       }
     } finally {
@@ -482,14 +517,21 @@ class _ExpressScreenState extends State<ExpressScreen> {
           'Transformación exprés', 'Transformação Express'))),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: FilledButton.icon(
-            onPressed: ready && !_busy ? _share : null,
-            icon: const Icon(Icons.share),
+        child: Row(children: [
+          Expanded(child: OutlinedButton.icon(
+            onPressed: ready && !_busy ? () => _export(save: true) : null,
+            icon: const Icon(Icons.save_alt_rounded),
+            label: Text(_tr('Enregistrer', 'Save', 'Guardar', 'Guardar')),
+          )),
+          const SizedBox(width: 10),
+          Expanded(child: FilledButton.icon(
+            onPressed: ready && !_busy ? () => _export(save: false) : null,
+            icon: const Icon(Icons.share_rounded),
             label: Text(_busy
-                ? _tr('Préparation...', 'Preparing...', 'Preparando...', 'Preparando...')
-                : _tr('Partager la comparaison', 'Share comparison',
-                    'Compartir comparación', 'Compartilhar comparação')),
-          ),
+              ? _tr('Patientez...', 'Please wait...', 'Espera...', 'Aguarde...')
+              : _tr('Partager', 'Share', 'Compartir', 'Partilhar')),
+          )),
+        ]),
       ),
       body: Container(
         decoration: BoxDecoration(
