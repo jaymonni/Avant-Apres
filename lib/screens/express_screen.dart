@@ -481,6 +481,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
           ]),
           const SizedBox(height: 16),
           SegmentedButton<int>(
+            showSelectedIcon: false,
             segments: [
               ButtonSegment(value: 0, label: Text(_tr('Côte à côte', 'Side by side', 'Lado a lado', 'Lado a lado'))),
               ButtonSegment(value: 1, label: Text(_tr('Haut / Bas', 'Top / Bottom', 'Arriba / Abajo', 'Cima / Baixo'))),
