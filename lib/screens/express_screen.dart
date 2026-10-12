@@ -22,6 +22,14 @@ class _ExpressScreenState extends State<ExpressScreen> {
   XFile? _before;
   XFile? _after;
   int _layout = 0;
+  int _exportFormat = 0;
+
+  double get _exportRatio => switch (_exportFormat) {
+    1 => 1.0,
+    2 => 4 / 5,
+    3 => 9 / 16,
+    _ => 4 / 5,
+  };
   bool _busy = false;
   double _split = 0.5;
   bool _adjust = false;
@@ -522,7 +530,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
             RepaintBoundary(
               key: _captureKey,
               child: AspectRatio(
-                aspectRatio: 4 / 5,
+                aspectRatio: _exportRatio,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: _comparison(),
@@ -558,6 +566,35 @@ class _ExpressScreenState extends State<ExpressScreen> {
                   ),
                 ),
               ),
+          ]),
+          const SizedBox(height: 12),
+          Row(children: [
+            const Icon(Icons.aspect_ratio_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text(_tr('Format de sortie', 'Output format',
+              'Formato de salida', 'Formato de saída'),
+              style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(width: 12),
+            Expanded(child: DropdownButtonFormField<int>(
+              value: _exportFormat,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                isDense: true,
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              ),
+              items: [
+                DropdownMenuItem(value: 0,
+                  child: Text(_tr('Original (4:5)', 'Original (4:5)',
+                    'Original (4:5)', 'Original (4:5)'))),
+                const DropdownMenuItem(value: 1, child: Text('Carré · 1:1')),
+                const DropdownMenuItem(value: 2, child: Text('Portrait · 4:5')),
+                const DropdownMenuItem(value: 3, child: Text('Story · 9:16')),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _exportFormat = value);
+              },
+            )),
           ]),
           const SizedBox(height: 16),
           SegmentedButton<int>(
