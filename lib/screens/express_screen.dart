@@ -40,12 +40,15 @@ class _ExpressScreenState extends State<ExpressScreen> {
   String? _afterLabel;
   bool _labelsAtBottom = false;
   int _labelColor = 0;
+  double _labelFontSize = 14;
+  bool _roundedCorners = true;
 
   String get _beforeText => _beforeLabel ?? AppStrings.before;
   String get _afterText => _afterLabel ?? AppStrings.after;
   Color get _labelBackground => const [
     Colors.black87, Color(0xFF1565C0), Color(0xFF2E7D32),
-    Color(0xFFAD1457),
+    Color(0xFFAD1457), Colors.deepPurple, Colors.orange,
+    Colors.blueGrey, Colors.brown,
   ][_labelColor];
 
   Future<void> _editLabels() async {
@@ -53,6 +56,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
     var afterText = _afterText;
     var bottom = _labelsAtBottom;
     var color = _labelColor;
+    var fontSize = _labelFontSize;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -88,18 +92,24 @@ class _ExpressScreenState extends State<ExpressScreen> {
               Text(_tr('Couleur', 'Color', 'Color', 'Cor')),
               const SizedBox(height: 8),
               Wrap(spacing: 12, children: [
-                for (var i = 0; i < 4; i++)
+                for (var i = 0; i < 8; i++)
                   IconButton.filled(
                     tooltip: '${i + 1}',
                     style: IconButton.styleFrom(
                       backgroundColor: const [Colors.black87,
                         Color(0xFF1565C0), Color(0xFF2E7D32),
-                        Color(0xFFAD1457)][i]),
+                        Color(0xFFAD1457), Colors.deepPurple, Colors.orange,
+                        Colors.blueGrey, Colors.brown][i]),
                     onPressed: () => updateSheet(() => color = i),
                     icon: Icon(color == i ? Icons.check : Icons.circle_outlined,
                       color: Colors.white),
                   ),
               ]),
+              const SizedBox(height: 12),
+              Text(_tr('Taille du texte', 'Text size', 'Tamaño del texto', 'Tamanho do texto')),
+              Slider(value: fontSize, min: 10, max: 24, divisions: 7,
+                label: fontSize.round().toString(),
+                onChanged: (value) => updateSheet(() => fontSize = value)),
               const SizedBox(height: 16),
               SizedBox(width: double.infinity, child: FilledButton(
                 onPressed: () {
@@ -110,6 +120,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
                         ? null : afterText.trim();
                     _labelsAtBottom = bottom;
                     _labelColor = color;
+                    _labelFontSize = fontSize;
                   });
                   Navigator.pop(sheetContext);
                 },
@@ -379,7 +390,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
           decoration: BoxDecoration(color: _labelBackground, borderRadius: BorderRadius.circular(8)),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(label, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: _labelFontSize)),
           ),
         ),
       ),
@@ -443,8 +454,8 @@ class _ExpressScreenState extends State<ExpressScreen> {
     ),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      child: Text(label, style: const TextStyle(
-        color: Colors.white, fontWeight: FontWeight.bold,
+      child: Text(label, style: TextStyle(
+        color: Colors.white, fontWeight: FontWeight.bold, fontSize: _labelFontSize,
       )),
     ),
   );
@@ -477,6 +488,46 @@ class _ExpressScreenState extends State<ExpressScreen> {
       return file;
     } finally {
       image.dispose();
+    }
+  }
+
+  Future<void> _showFullscreen() async {
+    final boundary = _captureKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary) return;
+    try {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      if (!mounted || data == null) return;
+      final bytes = data.buffer.asUint8List();
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => Dialog.fullscreen(
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              title: Text(_tr('Aperçu', 'Preview', 'Vista previa', 'Pré-visualização')),
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(dialogContext),
+              ),
+            ),
+            body: Center(child: InteractiveViewer(
+              minScale: 1, maxScale: 5,
+              child: Image.memory(bytes, fit: BoxFit.contain),
+            )),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(_tr('Aperçu indisponible', 'Preview unavailable',
+            'Vista previa no disponible', 'Pré-visualização indisponível')),
+        ));
+      }
     }
   }
 
@@ -574,7 +625,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
               child: AspectRatio(
                 aspectRatio: _exportRatio,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(_roundedCorners ? 16 : 0),
                   child: _comparison(),
                 ),
               ),
@@ -609,6 +660,15 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 ),
               ),
           ]),
+          if (ready)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _showFullscreen,
+                icon: const Icon(Icons.fullscreen_rounded),
+                label: Text(_tr('Plein écran', 'Fullscreen', 'Pantalla completa', 'Ecrã inteiro')),
+              ),
+            ),
           const SizedBox(height: 12),
           Row(children: [
             const Icon(Icons.aspect_ratio_rounded, size: 20),
@@ -649,6 +709,15 @@ class _ExpressScreenState extends State<ExpressScreen> {
             selected: {_layout},
             onSelectionChanged: (value) => setState(() => _layout = value.first),
           ),
+          if (ready)
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(_tr('Coins arrondis', 'Rounded corners',
+                'Esquinas redondeadas', 'Cantos arredondados')),
+              value: _roundedCorners,
+              onChanged: (value) => setState(() => _roundedCorners = value),
+            ),
           if (ready)
             Padding(
               padding: const EdgeInsets.only(top: 10),
