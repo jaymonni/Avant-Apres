@@ -833,6 +833,36 @@ class _FullscreenGalleryScreenState extends State<_FullscreenGalleryScreen> {
               );
             },
           ),
+          if (widget.items.length > 1) ...[
+            Positioned(
+              left: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(child: IconButton.filledTonal(
+                tooltip: 'Previous photo',
+                onPressed: _currentIndex == 0 ? null : () =>
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                    ),
+                icon: const Icon(Icons.chevron_left_rounded),
+              )),
+            ),
+            Positioned(
+              right: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(child: IconButton.filledTonal(
+                tooltip: 'Next photo',
+                onPressed: _currentIndex == widget.items.length - 1 ? null : () =>
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                    ),
+                icon: const Icon(Icons.chevron_right_rounded),
+              )),
+            ),
+          ],
           if (widget.items.length > 1)
             Positioned(
               bottom: 24,
