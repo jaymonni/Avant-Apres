@@ -1082,10 +1082,20 @@ class _DuringPhotosSheet extends StatelessWidget {
                     title: stepTitle,
                     item: item,
                     onTapImage: () {
-                      onOpenSingle(
+                      final galleryItems = project.duringPhotos.asMap().entries
+                          .where((entry) => LocalFiles.fileExists(entry.value.path))
+                          .map((entry) => _GalleryImageItem(
+                                path: entry.value.path,
+                                title: _stepTitle(context, entry.key),
+                              ))
+                          .toList();
+                      final selectedIndex = galleryItems.indexWhere(
+                        (photo) => photo.path == item.path,
+                      );
+                      onOpenGallery(
                         context,
-                        title: stepTitle,
-                        path: item.path,
+                        galleryItems,
+                        initialIndex: selectedIndex < 0 ? 0 : selectedIndex,
                       );
                     },
                     onEdit: () => onEditDuringPhoto(item),
