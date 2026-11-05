@@ -427,13 +427,62 @@ class _DetailScreenState extends State<DetailScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
         children: [
-          Text(
-            LocalFiles.formatDate(project.createdAt),
-            style: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.65),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.13),
+                  colorScheme.primary.withValues(alpha: 0.035),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.13),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded,
+                        color: colorScheme.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        project.status == ProjectStatus.done
+                            ? _tr(context, 'Transformation terminée', 'Transformation completed', 'Transformación terminada', 'Transformação concluída')
+                            : _tr(context, 'Transformation en cours', 'Transformation in progress', 'Transformación en curso', 'Transformação em andamento'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  LocalFiles.formatDate(project.createdAt),
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.75),
+                  ),
+                ),
+                if (project.duringPhotos.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  ActionChip(
+                    avatar: const Icon(Icons.photo_library_outlined, size: 18),
+                    label: Text(_duringPhotosLabel(context, project.duringPhotos.length)),
+                    onPressed: () => _openDuringPhotosSheet(context, project),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           _SectionCard(
             title: _tr(context, 'Description', 'Description', 'Descripción', 'Descrição'),
             trailing: IconButton(
