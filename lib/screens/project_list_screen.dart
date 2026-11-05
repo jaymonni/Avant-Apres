@@ -278,6 +278,19 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     ),
                   ),
                 ),
+                const Spacer(),
+                Text(
+                  _tr(
+                    fr: '${items.length} projet${items.length > 1 ? 's' : ''}',
+                    en: '${items.length} project${items.length > 1 ? 's' : ''}',
+                    es: '${items.length} proyecto${items.length > 1 ? 's' : ''}',
+                    pt: '${items.length} projeto${items.length > 1 ? 's' : ''}',
+                  ),
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
