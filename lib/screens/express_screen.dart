@@ -23,7 +23,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
   XFile? _before;
   XFile? _after;
   int _layout = 0;
-  int _exportFormat = 0;
+  int _exportFormat = 2;
 
   double get _exportRatio => switch (_exportFormat) {
     1 => 1.0,
@@ -142,14 +142,18 @@ class _ExpressScreenState extends State<ExpressScreen> {
     super.dispose();
   }
 
-  Widget _editable(XFile photo, TransformationController controller) => InteractiveViewer(
-    transformationController: controller,
-    panEnabled: _layout != 2 || _adjust,
-    scaleEnabled: _layout != 2 || _adjust,
-    boundaryMargin: const EdgeInsets.all(120),
-    minScale: 1,
-    maxScale: 5,
-    child: SizedBox.expand(child: Image.file(File(photo.path), fit: BoxFit.contain)),
+  Widget _editable(XFile photo, TransformationController controller) => ClipRect(
+    child: InteractiveViewer(
+      transformationController: controller,
+      panEnabled: _layout != 2 || _adjust,
+      scaleEnabled: _layout != 2 || _adjust,
+      boundaryMargin: const EdgeInsets.all(120),
+      minScale: 1,
+      maxScale: 5,
+      child: SizedBox.expand(
+        child: Image.file(File(photo.path), fit: BoxFit.cover),
+      ),
+    ),
   );
 
   void _zoom(double factor) {
@@ -368,7 +372,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
 
   Widget _image(XFile? file, String label, TransformationController controller) {
     final before = controller == _beforeController;
-    return Expanded(child: Stack(fit: StackFit.expand, children: [
+    return Expanded(child: ClipRRect(
+      borderRadius: BorderRadius.circular(_roundedCorners ? 16 : 0),
+      child: Stack(fit: StackFit.expand, children: [
       if (file != null)
         Listener(
           behavior: HitTestBehavior.translucent,
@@ -394,7 +400,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
           ),
         ),
       ),
-    ]));
+    ])));
   }
 
   Widget _comparison() {
@@ -626,7 +632,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 aspectRatio: _exportRatio,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(_roundedCorners ? 16 : 0),
-                  child: _comparison(),
+                  child: ColoredBox(color: Colors.black, child: _comparison()),
                 ),
               ),
             ),
@@ -686,9 +692,6 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               ),
               items: [
-                DropdownMenuItem(value: 0,
-                  child: Text(_tr('Original (4:5)', 'Original (4:5)',
-                    'Original (4:5)', 'Original (4:5)'))),
                 const DropdownMenuItem(value: 1, child: Text('Carré · 1:1')),
                 const DropdownMenuItem(value: 2, child: Text('Portrait · 4:5')),
                 const DropdownMenuItem(value: 3, child: Text('Story · 9:16')),
@@ -707,7 +710,14 @@ class _ExpressScreenState extends State<ExpressScreen> {
               ButtonSegment(value: 2, label: Text(_tr('Fusion 50/50', '50/50 blend', 'Fusión 50/50', 'Fusão 50/50'))),
             ],
             selected: {_layout},
-            onSelectionChanged: (value) => setState(() => _layout = value.first),
+            onSelectionChanged: (value) => setState(() {
+              if (_layout != value.first) {
+                _layout = value.first;
+                // Each arrangement has a different viewport geometry.
+                _beforeController.value = Matrix4.identity();
+                _afterController.value = Matrix4.identity();
+              }
+            }),
           ),
           if (ready)
             SwitchListTile.adaptive(
