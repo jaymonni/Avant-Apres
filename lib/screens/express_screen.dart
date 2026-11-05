@@ -10,6 +10,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/express_ads_service.dart';
+import '../services/express_history_service.dart';
+import 'express_history_screen.dart';
 
 class ExpressScreen extends StatefulWidget {
   const ExpressScreen({super.key});
@@ -553,6 +555,11 @@ class _ExpressScreenState extends State<ExpressScreen> {
       final file = await _renderExport();
       if (save) {
         await Gal.putImage(file.path, album: 'Avant Apres');
+        try {
+          await ExpressHistoryService.add(file);
+        } catch (error) {
+          debugPrint('Express history save unavailable: $error');
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(_tr('Image enregistrée dans la galerie',
@@ -580,8 +587,17 @@ class _ExpressScreenState extends State<ExpressScreen> {
   Widget build(BuildContext context) {
     final ready = _before != null && _after != null;
     return Scaffold(
-      appBar: AppBar(title: Text(_tr('Transformation Express', 'Express Transformation',
-          'Transformación exprés', 'Transformação Express'))),
+      appBar: AppBar(
+        title: Text(_tr('Transformation Express', 'Express Transformation',
+          'Transformación exprés', 'Transformação Express')),
+        actions: [IconButton(
+          tooltip: _tr('Historique', 'History', 'Historial', 'Histórico'),
+          icon: const Icon(Icons.history_rounded),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const ExpressHistoryScreen(),
+          )),
+        )],
+      ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Row(children: [
