@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdBannerWidget extends StatefulWidget {
@@ -16,7 +17,9 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
 
   String get _adUnitId {
   if (Platform.isAndroid) {
-    return 'ca-app-pub-6335107042829950/5679489668';
+    return kDebugMode
+        ? 'ca-app-pub-3940256099942544/6300978111'
+        : 'ca-app-pub-6335107042829950/5679489668';
   }
   return 'ca-app-pub-3940256099942544/2934735716'; // tu peux laisser test iOS si non utilisé
 }
@@ -57,7 +60,7 @@ class _AdBannerWidgetState extends State<AdBannerWidget> {
   @override
   Widget build(BuildContext context) {
     if (!_isLoaded || _bannerAd == null) {
-      return const SizedBox(height: 50);
+      return const SizedBox.shrink();
     }
 
     return SafeArea(
