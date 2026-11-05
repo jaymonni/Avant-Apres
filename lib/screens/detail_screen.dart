@@ -839,7 +839,12 @@ class _FullscreenGalleryScreenState extends State<_FullscreenGalleryScreen> {
               top: 0,
               bottom: 0,
               child: Center(child: IconButton.filledTonal(
-                tooltip: 'Previous photo',
+                tooltip: switch (Localizations.localeOf(context).languageCode) {
+                  'fr' => 'Photo précédente',
+                  'es' => 'Foto anterior',
+                  'pt' => 'Foto anterior',
+                  _ => 'Previous photo',
+                },
                 onPressed: _currentIndex == 0 ? null : () =>
                     _pageController.previousPage(
                       duration: const Duration(milliseconds: 220),
@@ -853,7 +858,12 @@ class _FullscreenGalleryScreenState extends State<_FullscreenGalleryScreen> {
               top: 0,
               bottom: 0,
               child: Center(child: IconButton.filledTonal(
-                tooltip: 'Next photo',
+                tooltip: switch (Localizations.localeOf(context).languageCode) {
+                  'fr' => 'Photo suivante',
+                  'es' => 'Foto siguiente',
+                  'pt' => 'Foto seguinte',
+                  _ => 'Next photo',
+                },
                 onPressed: _currentIndex == widget.items.length - 1 ? null : () =>
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 220),
