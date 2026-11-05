@@ -27,6 +27,34 @@ class _CropImageScreenState extends State<CropImageScreen> {
   Uint8List? _imageData;
   bool _isCropping = false;
   bool _isReady = false;
+  late double _selectedAspectRatio = widget.aspectRatio;
+  int _cropRevision = 0;
+
+  void _selectRatio(double ratio) {
+    if (_isCropping || ratio == _selectedAspectRatio) return;
+    setState(() {
+      _selectedAspectRatio = ratio;
+      _isReady = false;
+      _cropRevision++;
+    });
+  }
+
+  void _resetCrop() {
+    if (_isCropping) return;
+    setState(() {
+      _isReady = false;
+      _cropRevision++;
+    });
+  }
+
+  String _tr(String fr, String en, String es, String pt) {
+    switch (Localizations.localeOf(context).languageCode) {
+      case 'fr': return fr;
+      case 'es': return es;
+      case 'pt': return pt;
+      default: return en;
+    }
+  }
 
   @override
   void initState() {
@@ -105,12 +133,43 @@ class _CropImageScreenState extends State<CropImageScreen> {
             )
           : Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_tr('Format du cadre', 'Frame format', 'Formato del marco', 'Formato do quadro'),
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(children: [
+                          for (final ratio in <double>[16 / 9, 4 / 5, 1, 3 / 4]) ...[
+                            ChoiceChip(
+                              label: Text(ratio == 16 / 9 ? '16:9' : ratio == 4 / 5 ? '4:5' : ratio == 1 ? '1:1' : '3:4'),
+                              selected: (_selectedAspectRatio - ratio).abs() < 0.001,
+                              onSelected: (_) => _selectRatio(ratio),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ]),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(_tr('Déplacez et zoomez la photo avec deux doigts pour ajuster le cadrage.',
+                          'Move and pinch the photo to adjust the framing.',
+                          'Mueve y amplía la foto con dos dedos para ajustar el encuadre.',
+                          'Mova e amplie a foto com dois dedos para ajustar o enquadramento.'),
+                        style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.72))),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
                       child: Crop(
+                        key: ValueKey('crop_$_cropRevision'),
                         controller: _controller,
                         image: _imageData!,
                         onCropped: (result) async {
@@ -164,12 +223,12 @@ class _CropImageScreenState extends State<CropImageScreen> {
                         fixCropRect: true,
                         withCircleUi: false,
                         radius: 20,
-                        aspectRatio: widget.aspectRatio,
+                        aspectRatio: _selectedAspectRatio,
                         initialRectBuilder: InitialRectBuilder.withBuilder(
                           (viewportRect, imageRect) {
                             return _buildAspectRatioRect(
                               viewportRect,
-                              widget.aspectRatio,
+                              _selectedAspectRatio,
                             );
                           },
                         ),
@@ -198,6 +257,12 @@ class _CropImageScreenState extends State<CropImageScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     child: Row(
                       children: [
+                        IconButton(
+                          onPressed: _isCropping ? null : _resetCrop,
+                          tooltip: _tr('Réinitialiser le cadrage', 'Reset crop', 'Restablecer recorte', 'Redefinir recorte'),
+                          icon: const Icon(Icons.restart_alt_rounded),
+                        ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _isCropping
