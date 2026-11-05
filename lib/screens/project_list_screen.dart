@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_strings.dart';
+import '../widgets/ad_banner_widget.dart';
 import '../models/photo_project.dart';
 import '../providers/app_provider.dart';
 import 'detail_screen.dart';
@@ -202,6 +203,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
+      bottomNavigationBar: const AdBannerWidget(),
       appBar: AppBar(
         title: Text(
           title,
