@@ -718,9 +718,9 @@ class _ExpressScreenState extends State<ExpressScreen> {
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               ),
               items: [
-                const DropdownMenuItem(value: 1, child: Text('Carré · 1:1')),
-                const DropdownMenuItem(value: 2, child: Text('Portrait · 4:5')),
-                const DropdownMenuItem(value: 3, child: Text('Story · 9:16')),
+                DropdownMenuItem(value: 1, child: Text(_tr('Carré · 1:1', 'Square · 1:1', 'Cuadrado · 1:1', 'Quadrado · 1:1'))),
+                DropdownMenuItem(value: 2, child: Text(_tr('Portrait · 4:5', 'Portrait · 4:5', 'Retrato · 4:5', 'Retrato · 4:5'))),
+                DropdownMenuItem(value: 3, child: Text(_tr('Story · 9:16', 'Story · 9:16', 'Historia · 9:16', 'Story · 9:16'))),
               ],
               onChanged: (value) {
                 if (value != null) setState(() => _exportFormat = value);
