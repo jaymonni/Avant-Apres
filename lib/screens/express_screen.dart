@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_strings.dart';
+import '../services/express_ads_service.dart';
 
 class ExpressScreen extends StatefulWidget {
   const ExpressScreen({super.key});
@@ -19,6 +20,7 @@ class ExpressScreen extends StatefulWidget {
 
 class _ExpressScreenState extends State<ExpressScreen> {
   final _picker = ImagePicker();
+  final _expressAds = ExpressAdsService();
   final _captureKey = GlobalKey();
   XFile? _before;
   XFile? _after;
@@ -136,7 +138,14 @@ class _ExpressScreenState extends State<ExpressScreen> {
   final _afterController = TransformationController();
 
   @override
+  void initState() {
+    super.initState();
+    _expressAds.load();
+  }
+
+  @override
   void dispose() {
+    _expressAds.dispose();
     _beforeController.dispose();
     _afterController.dispose();
     super.dispose();
@@ -554,6 +563,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
       } else {
         await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
       }
+      if (mounted) _expressAds.onSuccessfulExport();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
