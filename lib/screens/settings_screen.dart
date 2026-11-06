@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 import '../providers/app_provider.dart';
 import '../services/project_backup_service.dart';
@@ -79,6 +81,46 @@ class SettingsScreen extends StatelessWidget {
             ? 'Sauvegarde impossible. Vérifiez que toutes les photos des projets sont présentes.'
             : 'Backup failed. Check that all project photos are available.',
       )));
+    }
+  }
+
+  Future<void> _importBackup(BuildContext context) async {
+    final language = Localizations.localeOf(context).languageCode;
+    final messenger = ScaffoldMessenger.of(context);
+    final provider = context.read<AppProvider>();
+    final selected = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+    );
+    if (selected == null || selected.files.single.path == null) return;
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(language == 'fr' ? 'Restaurer les projets ?' : 'Restore projects?'),
+        content: Text(language == 'fr'
+            ? 'Les projets du fichier ZIP seront ajoutés. Vos projets actuels seront conservés.'
+            : 'Projects from the ZIP will be added. Existing projects will be kept.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(language == 'fr' ? 'Annuler' : 'Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(language == 'fr' ? 'Restaurer' : 'Restore')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      final count = await ProjectBackupService.restoreBackup(
+        File(selected.files.single.path!), provider,
+      );
+      messenger.showSnackBar(SnackBar(content: Text(language == 'fr'
+          ? '$count projet(s) restauré(s).'
+          : '$count project(s) restored.')));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(language == 'fr'
+          ? 'Restauration impossible : vérifiez le fichier ZIP.'
+          : 'Restore failed: check the ZIP backup.')));
     }
   }
 
@@ -219,6 +261,26 @@ class SettingsScreen extends StatelessWidget {
                 _ => 'Create a ZIP to store outside your phone. Restore coming soon.',
               }),
               trailing: const Icon(Icons.ios_share_rounded),
+            ),
+          ),
+          Card(
+            child: ListTile(
+              onTap: () => _importBackup(context),
+              leading: Icon(Icons.settings_backup_restore_rounded,
+                color: colorScheme.primary),
+              title: Text(switch (locale.languageCode) {
+                'fr' => 'Restaurer des projets',
+                'es' => 'Restaurar proyectos',
+                'pt' => 'Restaurar projetos',
+                _ => 'Restore projects',
+              }),
+              subtitle: Text(switch (locale.languageCode) {
+                'fr' => 'Importer un ZIP de sauvegarde sans supprimer les projets existants.',
+                'es' => 'Importar un ZIP sin borrar los proyectos existentes.',
+                'pt' => 'Importar um ZIP sem apagar os projetos existentes.',
+                _ => 'Import a ZIP without deleting existing projects.',
+              }),
+              trailing: const Icon(Icons.folder_open_rounded),
             ),
           ),
           const SizedBox(height: 20),
