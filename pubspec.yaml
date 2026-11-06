@@ -25,6 +25,7 @@ dependencies:
   google_mobile_ads: ^6.0.0
   crop_your_image: ^2.0.0
   in_app_review: ^2.0.10
+  archive: ^4.0.7
 
 dev_dependencies:
   flutter_test:
