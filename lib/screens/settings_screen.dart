@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../providers/app_provider.dart';
+import '../services/project_backup_service.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:provider/provider.dart';
 
@@ -48,6 +52,33 @@ class SettingsScreen extends StatelessWidget {
         return 'Português';
       default:
         return 'English';
+    }
+  }
+
+  Future<void> _exportBackup(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final language = Localizations.localeOf(context).languageCode;
+    final projects = context.read<AppProvider>().items;
+    if (projects.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(
+        language == 'fr' ? 'Aucun projet à sauvegarder.' : 'No projects to back up.',
+      )));
+      return;
+    }
+    try {
+      final file = await ProjectBackupService.createBackup(projects);
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path)],
+        text: language == 'fr'
+            ? 'Sauvegarde Avant / Après : conservez ce fichier ZIP en lieu sûr.'
+            : 'Avant / Après backup: keep this ZIP file safe.',
+      ));
+    } catch (error) {
+      messenger.showSnackBar(SnackBar(content: Text(
+        language == 'fr'
+            ? 'Sauvegarde impossible. Vérifiez que toutes les photos des projets sont présentes.'
+            : 'Backup failed. Check that all project photos are available.',
+      )));
     }
   }
 
@@ -158,6 +189,37 @@ class SettingsScreen extends StatelessWidget {
               _LanguageChip(locale: Locale('es'), label: 'ES'),
               _LanguageChip(locale: Locale('pt'), label: 'PT'),
             ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            switch (locale.languageCode) {
+              'fr' => 'Sauvegarde des projets',
+              'es' => 'Copia de seguridad',
+              'pt' => 'Cópia de segurança',
+              _ => 'Project backup',
+            },
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900,
+              color: colorScheme.onSurface),
+          ),
+          const SizedBox(height: 10),
+          Card(
+            child: ListTile(
+              onTap: () => _exportBackup(context),
+              leading: Icon(Icons.backup_outlined, color: colorScheme.primary),
+              title: Text(switch (locale.languageCode) {
+                'fr' => 'Exporter mes projets et photos',
+                'es' => 'Exportar proyectos y fotos',
+                'pt' => 'Exportar projetos e fotos',
+                _ => 'Export projects and photos',
+              }),
+              subtitle: Text(switch (locale.languageCode) {
+                'fr' => 'Créer un fichier ZIP à conserver hors du téléphone. Restauration à venir.',
+                'es' => 'Crear un ZIP para guardar fuera del teléfono. Restauración próximamente.',
+                'pt' => 'Criar um ZIP para guardar fora do telemóvel. Restauro em breve.',
+                _ => 'Create a ZIP to store outside your phone. Restore coming soon.',
+              }),
+              trailing: const Icon(Icons.ios_share_rounded),
+            ),
           ),
           const SizedBox(height: 20),
           Text(
