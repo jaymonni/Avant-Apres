@@ -2,7 +2,7 @@ name: avant_apres
 description: Application Flutter Avant / Après
 publish_to: "none"
 
-version: 1.0.6+7
+version: 1.0.7+8
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
