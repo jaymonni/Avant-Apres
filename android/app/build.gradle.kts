@@ -34,6 +34,19 @@ android {
         versionName = flutter.versionName
     }
 
+    val v2Store = System.getenv("V2_SIGNING_STORE_FILE")
+    val v2Password = System.getenv("V2_SIGNING_PASSWORD")
+    if (v2Store != null && v2Password != null) {
+        signingConfigs {
+            create("v2Debug") {
+                storeFile = file(v2Store)
+                storePassword = v2Password
+                keyAlias = "avantapres-v2"
+                keyPassword = v2Password
+            }
+        }
+    }
+
     if (keystorePropertiesFile.exists()) {
         signingConfigs {
             create("release") {
@@ -49,6 +62,9 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
+            if (v2Store != null && v2Password != null) {
+                signingConfig = signingConfigs.getByName("v2Debug")
+            }
         }
         getByName("release") {
             signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
