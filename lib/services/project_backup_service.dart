@@ -97,7 +97,7 @@ class ProjectBackupService {
       }
       for (final ref in refs) {
         if (ref.isEmpty) continue;
-        if (!RegExp(r'^photos/[0-9]+/(before|after|during_[0-9]+)\\.jpg$')
+        if (!RegExp(r'^photos/[0-9]+/(before|after|during_[0-9]+)\.jpg$')
             .hasMatch(ref) || !entries.containsKey(ref)) {
           throw const FormatException('Invalid photo reference');
         }
