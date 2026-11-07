@@ -39,7 +39,22 @@ jobs:
       - name: Analyze Dart code
         run: flutter analyze --no-fatal-infos
 
-      - name: Build debug APK (separate dev app)
+      - name: Restore stable signing key
+        env:
+          V2_KEYSTORE_BASE64: ${{ secrets.V2_KEYSTORE_BASE64 }}
+          V2_SIGNING_PASSWORD: ${{ secrets.V2_SIGNING_PASSWORD }}
+        run: |
+          if [ -z "$V2_KEYSTORE_BASE64" ] || [ -z "$V2_SIGNING_PASSWORD" ]; then
+            echo "::error::Missing V2_KEYSTORE_BASE64 or V2_SIGNING_PASSWORD repository secret"
+            exit 1
+          fi
+          printf '%s' "$V2_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/v2-signing.jks"
+          keytool -list -keystore "$RUNNER_TEMP/v2-signing.jks" -storepass "$V2_SIGNING_PASSWORD" -alias avantapres-v2 > /dev/null
+
+      - name: Build debug APK (stable signature)
+        env:
+          V2_SIGNING_STORE_FILE: ${{ runner.temp }}/v2-signing.jks
+          V2_SIGNING_PASSWORD: ${{ secrets.V2_SIGNING_PASSWORD }}
         run: flutter build apk --debug
 
       - name: Upload installable APK
