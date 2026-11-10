@@ -432,7 +432,7 @@ class _DetailScreenState extends State<DetailScreen> {
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -468,41 +468,15 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   LocalFiles.formatDate(project.createdAt),
                   style: TextStyle(
+                    fontSize: 13,
                     color: colorScheme.onSurface.withValues(alpha: 0.75),
                   ),
                 ),
-                if (project.duringPhotos.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  ActionChip(
-                    avatar: const Icon(Icons.photo_library_outlined, size: 18),
-                    label: Text(_duringPhotosLabel(context, project.duringPhotos.length)),
-                    onPressed: () => _openDuringPhotosSheet(context, project),
-                  ),
-                ],
               ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _SectionCard(
-            title: _tr(context, 'Description', 'Description', 'Descripción', 'Descrição'),
-            trailing: IconButton(
-              onPressed: () => _openEditNotesSheet(project),
-              icon: const Icon(Icons.edit_rounded),
-              tooltip: _tr(context, 'Modifier', 'Edit', 'Editar', 'Editar'),
-            ),
-            child: Text(
-              project.description.trim().isEmpty
-                  ? _tr(context, 'Aucune description', 'No description', 'Sin descripción', 'Sem descrição')
-                  : project.description,
-              style: TextStyle(
-                color: project.description.trim().isEmpty
-                    ? colorScheme.onSurface.withValues(alpha: 0.62)
-                    : colorScheme.onSurface,
-              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -643,26 +617,39 @@ class _DetailScreenState extends State<DetailScreen> {
           ],
           const SizedBox(height: 14),
           _SectionCard(
-            title: _tr(context, 'Notes', 'Notes', 'Notas', 'Notas'),
+            title: _tr(context, 'Description et notes', 'Description and notes', 'Descripción y notas', 'Descrição e notas'),
             trailing: IconButton(
               onPressed: () => _openEditNotesSheet(project),
               icon: const Icon(Icons.edit_rounded),
               tooltip: _tr(context, 'Modifier', 'Edit', 'Editar', 'Editar'),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(_tr(context, 'Description', 'Description', 'Descripción', 'Descrição'),
+                  style: TextStyle(fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface.withValues(alpha: 0.7))),
+                const SizedBox(height: 6),
+                Text(
+                  project.description.trim().isEmpty
+                    ? _tr(context, 'Aucune description', 'No description', 'Sin descripción', 'Sem descrição')
+                    : project.description,
+                  style: TextStyle(color: project.description.trim().isEmpty
+                    ? colorScheme.onSurface.withValues(alpha: 0.62) : colorScheme.onSurface),
+                ),
+                const Divider(height: 28),
                 _InfoLine(
                   label: AppStrings.before,
                   value: project.beforeNote.isEmpty
-                      ? _tr(context, 'Aucune note', 'No note', 'Sin nota', 'Sem nota')
-                      : project.beforeNote,
+                    ? _tr(context, 'Aucune note', 'No note', 'Sin nota', 'Sem nota')
+                    : project.beforeNote,
                 ),
                 const SizedBox(height: 12),
                 _InfoLine(
                   label: AppStrings.after,
                   value: project.afterNote.isEmpty
-                      ? _tr(context, 'Aucune note', 'No note', 'Sin nota', 'Sem nota')
-                      : project.afterNote,
+                    ? _tr(context, 'Aucune note', 'No note', 'Sin nota', 'Sem nota')
+                    : project.afterNote,
                 ),
               ],
             ),
