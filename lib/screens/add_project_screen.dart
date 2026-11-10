@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
 import '../models/photo_project.dart';
 import '../providers/app_provider.dart';
+import '../services/express_ads_service.dart';
 import 'crop_image_screen.dart';
 
 class AddProjectScreen extends StatefulWidget {
@@ -294,6 +295,7 @@ class _AddProjectScreenState extends State<AddProjectScreen> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
+      ExpressAdsService().onCompletedAction();
     } catch (e) {
       _showSnack(
         _tr(
