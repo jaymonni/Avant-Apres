@@ -168,10 +168,6 @@ class ShareProjectService {
     return frame.image;
   }
 
-  static void _rounded(Canvas canvas, Rect r, Color color, double radius) {
-    canvas.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(radius)), Paint()..color = color);
-  }
-
   static void _cover(Canvas canvas, ui.Image image, Rect dest, double radius) {
     final iw = image.width.toDouble(), ih = image.height.toDouble();
     final ratio = dest.width / dest.height;
