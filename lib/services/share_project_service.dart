@@ -57,7 +57,6 @@ class ShareProjectService {
       ShareFormat.story => 1920.0,
     };
     const bg = Color(0xFFFAFAF8);
-    const card = Colors.white;
     const ink = Color(0xFF292929);
     const muted = Color(0xFF626262);
     final accent = options.accent.color;
@@ -67,69 +66,86 @@ class ShareProjectService {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, w, h));
     canvas.drawColor(bg, BlendMode.src);
-    const margin = 42.0;
-    const gap = 18.0;
+    const margin = 48.0;
+    const gap = 20.0;
+    const footerTopGap = 28.0;
+    const footerHeight = 80.0;
+    const titleTop = 44.0;
+    const titleArea = 120.0;
+    const labelHeight = 43.0;
+    const sectionGap = 30.0;
     final colWidth = (w - 2 * margin - gap) / 2;
-    double y = 44;
-    _text(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
-      margin, y, w - margin * 2, 46, ink,
-      bold: true, maxLines: 2, align: TextAlign.center);
-    y += 118;
-
     final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
-        (options.afterNote && project.afterNote.trim().isNotEmpty);
+      (options.afterNote && project.afterNote.trim().isNotEmpty);
     final hasDescription = options.description && project.description.trim().isNotEmpty;
-    // Allocate remaining height to photos, steps and explanatory text.
-    const footerSpace = 90.0;
-    final descSpace = hasDescription ? 145.0 : 0.0;
-    final stepSpace = steps.isNotEmpty ? (steps.length <= 2 ? 260.0 : 350.0) : 0.0;
-    final noteSpace = hasNotes ? 100.0 : 0.0;
-    final available = h - y - footerSpace - descSpace - stepSpace - noteSpace - 25;
-    final photoHeight = available.clamp(270.0, options.format == ShareFormat.story ? 1000.0 : 740.0).toDouble();
-    final photoY = y;
+    final noteHeight = hasNotes ? 84.0 : 0.0;
+    final descHeight = hasDescription ? 110.0 : 0.0;
+    final stepsHeight = steps.isEmpty ? 0.0 :
+      (options.format == ShareFormat.square ? 185.0 :
+        options.format == ShareFormat.portrait ? 245.0 : 370.0);
+    final photoBudget = h - titleTop - titleArea - labelHeight -
+      noteHeight - descHeight - stepsHeight - footerHeight -
+      footerTopGap - sectionGap - 12;
+    final photoHeight = photoBudget.clamp(240.0, 1100.0).toDouble();
+
+    _text(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
+      margin, titleTop, w - margin * 2, 46, ink,
+      bold: true, maxLines: 2, align: TextAlign.center);
+    double y = titleTop + titleArea;
+
     for (var i = 0; i < 2; i++) {
       final x = margin + i * (colWidth + gap);
-      _rounded(canvas, Rect.fromLTWH(x, photoY, colWidth, photoHeight + (hasNotes ? noteSpace : 0)), card, 22);
+      _text(canvas, i == 0 ? 'AVANT' : 'APRÈS',
+        x, y, colWidth, 29, accent, bold: true, align: TextAlign.center);
       final image = await _load(i == 0 ? project.beforePath : project.afterPath);
-      _cover(canvas, image, Rect.fromLTWH(x, photoY, colWidth, photoHeight - 2), 20);
-      _pill(canvas, i == 0 ? 'AVANT' : 'APRÈS', x + 20, photoY + photoHeight - 66, accent);
+      _cover(canvas, image,
+        Rect.fromLTWH(x, y + labelHeight, colWidth, photoHeight), 16);
       final note = i == 0 ? project.beforeNote : project.afterNote;
-      if (hasNotes && (i == 0 ? options.beforeNote : options.afterNote) && note.trim().isNotEmpty) {
-        _text(canvas, note, x + 15, photoY + photoHeight + 12, colWidth - 30, 24, muted, maxLines: 3);
+      if (hasNotes && (i == 0 ? options.beforeNote : options.afterNote) &&
+          note.trim().isNotEmpty) {
+        _text(canvas, note, x + 5, y + labelHeight + photoHeight + 12,
+          colWidth - 10, 23, muted, maxLines: 2);
       }
     }
-    y += photoHeight + (hasNotes ? noteSpace : 0) + 22;
+    y += labelHeight + photoHeight + noteHeight + sectionGap;
 
     if (steps.isNotEmpty) {
-      _text(canvas, 'LES ÉTAPES', margin, y, w - margin * 2, 28, ink, bold: true);
-      y += 44;
-      final columns = steps.length == 1 ? 1 : (steps.length == 2 ? 2 : 3);
-      final cellW = (w - margin * 2 - gap * (columns - 1)) / columns;
+      _text(canvas, 'LES ÉTAPES', margin, y, w - margin * 2, 26,
+        ink, bold: true);
+      y += 42;
+      final columns = steps.length == 1 ? 1 : 2;
       final rows = (steps.length / columns).ceil();
-      final rowHeight = ((stepSpace - 54) / rows).clamp(95.0, 225.0).toDouble();
+      final cellW = (w - margin * 2 - gap * (columns - 1)) / columns;
+      final rowH = (stepsHeight - 50) / rows;
       for (var i = 0; i < steps.length; i++) {
         final row = i ~/ columns;
         final column = i % columns;
         final x = margin + column * (cellW + gap);
-        final top = y + row * rowHeight;
-        final noteH = options.duringNotes && steps[i].note.trim().isNotEmpty ? 48.0 : 0.0;
-        final imgH = rowHeight - noteH - 10;
+        final top = y + row * rowH;
+        final hasStepNote = options.duringNotes && steps[i].note.trim().isNotEmpty;
+        final noteH = hasStepNote && rowH >= 95 ? 37.0 : 0.0;
+        final imgH = (rowH - noteH - 12).clamp(24.0, rowH).toDouble();
         final image = await _load(steps[i].path);
         _cover(canvas, image, Rect.fromLTWH(x, top, cellW, imgH), 12);
-        if (noteH > 0) _text(canvas, steps[i].note, x + 4, top + imgH + 5, cellW - 8, 19, muted, maxLines: 2);
+        if (noteH > 0) {
+          _text(canvas, steps[i].note, x + 4, top + imgH + 4,
+            cellW - 8, 20, muted, maxLines: 1);
+        }
       }
-      y += rows * rowHeight + 14;
+      y += stepsHeight - 42;
     }
 
     if (hasDescription) {
-      _text(canvas, 'LA TRANSFORMATION', margin, y, w - 2 * margin, 27, ink, bold: true);
-      y += 40;
-      _text(canvas, project.description, margin, y, w - 2 * margin, 25, muted, maxLines: 4);
+      _text(canvas, 'LA TRANSFORMATION', margin, y, w - 2 * margin,
+        25, ink, bold: true);
+      y += 36;
+      _text(canvas, project.description, margin, y,
+        w - 2 * margin, 23, muted, maxLines: 2);
     }
 
-    canvas.drawRect(Rect.fromLTWH(margin, h - 82, w - margin * 2, 2),
-      Paint()..color = accent.withValues(alpha: 0.30));
-    _text(canvas, 'Avant / Après  ·  Application mobile', margin, h - 64,
+    canvas.drawRect(Rect.fromLTWH(margin, h - 80, w - margin * 2, 1.5),
+      Paint()..color = accent.withValues(alpha: 0.25));
+    _text(canvas, 'Avant / Après  ·  Application mobile', margin, h - 60,
       w - margin * 2, 23, muted, align: TextAlign.center);
 
     final picture = recorder.endRecording();
