@@ -16,12 +16,11 @@ class ProjectShareOptions {
     this.afterNote = true,
     this.description = true,
     this.duringNotes = true,
-    this.signature = true,
     this.duringIds = const {},
   });
   final ShareTheme theme;
   final ShareFormat format;
-  final bool beforeNote, afterNote, description, duringNotes, signature;
+  final bool beforeNote, afterNote, description, duringNotes;
   final Set<String> duringIds;
 }
 
@@ -48,10 +47,10 @@ class ShareProjectService {
     };
     final bg = switch (options.theme) {
       ShareTheme.light => const Color(0xFFF7F8FA),
-      ShareTheme.modern => const Color(0xFFEDF2F6),
+      ShareTheme.modern => const Color(0xFFDCE7EF),
       ShareTheme.dark => const Color(0xFF202630),
     };
-    final card = options.theme == ShareTheme.dark ? const Color(0xFF303945) : Colors.white;
+    final card = options.theme == ShareTheme.dark ? const Color(0xFF303945) : (options.theme == ShareTheme.modern ? const Color(0xFFF8FBFD) : Colors.white);
     final ink = options.theme == ShareTheme.dark ? Colors.white : const Color(0xFF172A3E);
     final muted = options.theme == ShareTheme.dark ? const Color(0xFFCED6DE) : const Color(0xFF526174);
     const accent = Color(0xFF113653);
@@ -65,15 +64,21 @@ class ShareProjectService {
     const gap = 18.0;
     final colWidth = (w - 2 * margin - gap) / 2;
     double y = 40;
+    final modern = options.theme == ShareTheme.modern;
+    if (modern) {
+      _rounded(canvas, const Rect.fromLTWH(24, 24, 1032, 116),
+        const Color(0xFF113653), 24);
+    }
     _text(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
-      margin, y, w - margin * 2, 46, ink, bold: true, maxLines: 2);
-    y += 112;
+      margin, modern ? 49 : y, w - margin * 2, 46,
+      modern ? Colors.white : ink, bold: true, maxLines: 2);
+    y += 132;
 
     final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
         (options.afterNote && project.afterNote.trim().isNotEmpty);
     final hasDescription = options.description && project.description.trim().isNotEmpty;
     // Allocate remaining height to photos, steps and explanatory text.
-    final footerSpace = options.signature ? 74.0 : 28.0;
+    const footerSpace = 74.0;
     final descSpace = hasDescription ? 145.0 : 0.0;
     final stepSpace = steps.isNotEmpty ? (steps.length <= 2 ? 260.0 : 350.0) : 0.0;
     final noteSpace = hasNotes ? 100.0 : 0.0;
@@ -120,11 +125,10 @@ class ShareProjectService {
       _text(canvas, project.description, margin, y, w - 2 * margin, 25, muted, maxLines: 4);
     }
 
-    if (options.signature) {
-      canvas.drawRect(Rect.fromLTWH(0, h - 62, w, 62), Paint()..color = accent);
-      _text(canvas, 'Créé avec Avant / Après', margin, h - 48, w - 2 * margin, 24, Colors.white,
-        bold: true, align: TextAlign.right);
-    }
+    canvas.drawRect(Rect.fromLTWH(0, h - 62, w, 62), Paint()
+      ..color = options.theme == ShareTheme.light ? const Color(0xFF475569) : accent);
+    _text(canvas, 'Créé avec Avant / Après', margin, h - 48, w - 2 * margin, 24, Colors.white,
+      bold: true, align: TextAlign.right);
     final picture = recorder.endRecording();
     final image = await picture.toImage(w.toInt(), h.toInt());
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
