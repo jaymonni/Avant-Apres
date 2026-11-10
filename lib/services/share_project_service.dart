@@ -72,8 +72,9 @@ class ShareProjectService {
     const footerHeight = 80.0;
     const titleTop = 44.0;
     const titleArea = 120.0;
-    const labelHeight = 43.0;
+    const labelHeight = 0.0;
     const sectionGap = 30.0;
+    const framePadding = 10.0;
     final colWidth = (w - 2 * margin - gap) / 2;
     final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
       (options.afterNote && project.afterNote.trim().isNotEmpty);
@@ -83,31 +84,41 @@ class ShareProjectService {
     final stepsHeight = steps.isEmpty ? 0.0 :
       (options.format == ShareFormat.square ? 185.0 :
         options.format == ShareFormat.portrait ? 245.0 : 370.0);
-    final photoBudget = h - titleTop - titleArea - labelHeight -
+    final photoBudget = h - titleTop - titleArea - labelHeight - framePadding * 2 -
       noteHeight - descHeight - stepsHeight - footerHeight -
       footerTopGap - sectionGap - 12;
     final photoHeight = photoBudget.clamp(240.0, 1100.0).toDouble();
 
-    _text(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
-      margin, titleTop, w - margin * 2, 46, ink,
-      bold: true, maxLines: 2, align: TextAlign.center);
+    _centeredTitle(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
+      Rect.fromLTWH(margin, titleTop, w - margin * 2, titleArea), ink);
     double y = titleTop + titleArea;
 
+    final frame = RRect.fromRectAndRadius(
+      Rect.fromLTWH(margin, y, w - 2 * margin, photoHeight + framePadding * 2),
+      const Radius.circular(20));
+    canvas.drawRRect(frame, Paint()..color = accent);
+    final innerWidth = (w - 2 * margin - framePadding * 2 - gap) / 2;
     for (var i = 0; i < 2; i++) {
-      final x = margin + i * (colWidth + gap);
-      _text(canvas, i == 0 ? 'AVANT' : 'APRÈS',
-        x, y, colWidth, 29, accent, bold: true, align: TextAlign.center);
+      final x = margin + framePadding + i * (innerWidth + gap);
       final image = await _load(i == 0 ? project.beforePath : project.afterPath);
-      _cover(canvas, image,
-        Rect.fromLTWH(x, y + labelHeight, colWidth, photoHeight), 16);
+      final photoRect = Rect.fromLTWH(x, y + framePadding, innerWidth, photoHeight);
+      _cover(canvas, image, photoRect, 12);
+      final label = i == 0 ? 'AVANT' : 'APRÈS';
+      final labelRect = Rect.fromLTWH(x + 14, y + framePadding + photoHeight - 54, 132, 40);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(labelRect, const Radius.circular(10)),
+        Paint()..color = const Color(0xCC222222));
+      _text(canvas, label, labelRect.left + 6, labelRect.top + 7,
+        labelRect.width - 12, 22, Colors.white, bold: true,
+        align: TextAlign.center);
       final note = i == 0 ? project.beforeNote : project.afterNote;
       if (hasNotes && (i == 0 ? options.beforeNote : options.afterNote) &&
           note.trim().isNotEmpty) {
-        _text(canvas, note, x + 5, y + labelHeight + photoHeight + 12,
-          colWidth - 10, 23, muted, maxLines: 2);
+        _text(canvas, note, x + 5, y + photoHeight + framePadding * 2 + 12,
+          innerWidth - 10, 23, muted, maxLines: 2);
       }
     }
-    y += labelHeight + photoHeight + noteHeight + sectionGap;
+    y += photoHeight + framePadding * 2 + noteHeight + sectionGap;
 
     if (steps.isNotEmpty) {
       _text(canvas, 'LES ÉTAPES', margin, y, w - margin * 2, 26,
@@ -126,7 +137,7 @@ class ShareProjectService {
         final noteH = hasStepNote && rowH >= 95 ? 37.0 : 0.0;
         final imgH = (rowH - noteH - 12).clamp(24.0, rowH).toDouble();
         final image = await _load(steps[i].path);
-        _cover(canvas, image, Rect.fromLTWH(x, top, cellW, imgH), 12);
+        _contain(canvas, image, Rect.fromLTWH(x, top, cellW, imgH), 12);
         if (noteH > 0) {
           _text(canvas, steps[i].note, x + 4, top + imgH + 4,
             cellW - 8, 20, muted, maxLines: 1);
@@ -179,6 +190,42 @@ class ShareProjectService {
     canvas.drawImageRect(image, src, dest, Paint()..filterQuality = FilterQuality.high);
     canvas.restore();
     image.dispose();
+  }
+
+  static void _contain(Canvas canvas, ui.Image image, Rect dest, double radius) {
+    final scale = (dest.width / image.width < dest.height / image.height)
+      ? dest.width / image.width : dest.height / image.height;
+    final fittedW = image.width * scale;
+    final fittedH = image.height * scale;
+    final fitted = Rect.fromLTWH(
+      dest.left + (dest.width - fittedW) / 2,
+      dest.top + (dest.height - fittedH) / 2,
+      fittedW, fittedH);
+    canvas.save();
+    canvas.clipRRect(RRect.fromRectAndRadius(dest, Radius.circular(radius)));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(dest, Radius.circular(radius)),
+      Paint()..color = const Color(0xFFECEAE6));
+    canvas.drawImageRect(image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      fitted, Paint()..filterQuality = FilterQuality.high);
+    canvas.restore();
+    image.dispose();
+  }
+
+  static void _centeredTitle(Canvas canvas, String title, Rect area, Color ink) {
+    final painter = TextPainter(
+      text: TextSpan(text: title, style: TextStyle(
+        fontSize: 46, color: ink, fontWeight: FontWeight.w800, height: 1.22)),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+      maxLines: 2,
+      ellipsis: '…',
+    )..layout(maxWidth: area.width);
+    painter.paint(canvas, Offset(
+      area.left + (area.width - painter.width) / 2,
+      area.top + (area.height - painter.height) / 2));
+    painter.dispose();
   }
 
   static void _text(Canvas canvas, String text, double x, double y, double width,
