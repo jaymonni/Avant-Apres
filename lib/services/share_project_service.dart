@@ -67,22 +67,22 @@ class ShareProjectService {
     final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, w, h));
     canvas.drawColor(bg, BlendMode.src);
     const margin = 48.0;
-    const gap = 14.0;
-    const footerTopGap = 28.0;
-    const footerHeight = 80.0;
-    const titleTop = 44.0;
-    const titleArea = 120.0;
+    const gap = 8.0;
+    const footerTopGap = 12.0;
+    const footerHeight = 70.0;
+    const titleTop = 36.0;
+    const titleArea = 105.0;
     const labelHeight = 0.0;
-    const sectionGap = 30.0;
-    const framePadding = 7.0;
+    const sectionGap = 16.0;
+    const framePadding = 4.0;
     final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
       (options.afterNote && project.afterNote.trim().isNotEmpty);
     final hasDescription = options.description && project.description.trim().isNotEmpty;
-    final noteHeight = hasNotes ? 84.0 : 0.0;
-    final descHeight = hasDescription ? 110.0 : 0.0;
+    final noteHeight = hasNotes ? 76.0 : 0.0;
+    final descHeight = hasDescription ? 100.0 : 0.0;
     final stepsHeight = steps.isEmpty ? 0.0 :
-      (options.format == ShareFormat.square ? 185.0 :
-        options.format == ShareFormat.portrait ? 245.0 : 370.0);
+      (options.format == ShareFormat.square ? 255.0 :
+        options.format == ShareFormat.portrait ? 310.0 : 420.0);
     final photoBudget = h - titleTop - titleArea - labelHeight - framePadding * 2 -
       noteHeight - descHeight - stepsHeight - footerHeight -
       footerTopGap - sectionGap - 12;
@@ -94,7 +94,7 @@ class ShareProjectService {
 
     final frame = RRect.fromRectAndRadius(
       Rect.fromLTWH(margin, y, w - 2 * margin, photoHeight + framePadding * 2),
-      const Radius.circular(16));
+      const Radius.circular(14));
     canvas.drawRRect(frame, Paint()..color = accent);
     final innerWidth = (w - 2 * margin - framePadding * 2 - gap) / 2;
     for (var i = 0; i < 2; i++) {
@@ -122,11 +122,11 @@ class ShareProjectService {
     if (steps.isNotEmpty) {
       _text(canvas, 'LES ÉTAPES', margin, y, w - margin * 2, 26,
         ink, bold: true);
-      y += 42;
+      y += 34;
       final columns = steps.length == 1 ? 1 : 2;
       final rows = (steps.length / columns).ceil();
-      final cellW = steps.length == 1 ? 360.0 : (w - margin * 2 - gap) / 2;
-      final rowH = (stepsHeight - 50) / rows;
+      final cellW = steps.length == 1 ? 520.0 : (w - margin * 2 - gap) / 2;
+      final rowH = (stepsHeight - 40) / rows;
       for (var i = 0; i < steps.length; i++) {
         final row = i ~/ columns;
         final column = i % columns;
@@ -144,7 +144,7 @@ class ShareProjectService {
             cellW - 8, 25, muted, maxLines: 1);
         }
       }
-      y += stepsHeight - 42;
+      y += stepsHeight - 34;
     }
 
     if (hasDescription) {
@@ -204,9 +204,7 @@ class ShareProjectService {
       fittedW, fittedH);
     canvas.save();
     canvas.clipRRect(RRect.fromRectAndRadius(dest, Radius.circular(radius)));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(dest, Radius.circular(radius)),
-      Paint()..color = const Color(0xFFFAFAF8));
+    canvas.clipRRect(RRect.fromRectAndRadius(fitted, Radius.circular(radius)));
     canvas.drawImageRect(image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
       fitted, Paint()..filterQuality = FilterQuality.high);
