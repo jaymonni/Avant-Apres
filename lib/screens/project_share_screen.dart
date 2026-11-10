@@ -15,7 +15,7 @@ class ProjectShareScreen extends StatefulWidget {
 class _ProjectShareScreenState extends State<ProjectShareScreen> {
   ShareTheme theme = ShareTheme.modern;
   ShareFormat format = ShareFormat.portrait;
-  bool beforeNote = true, afterNote = true, description = true, duringNotes = true, signature = true;
+  bool beforeNote = true, afterNote = true, description = true, duringNotes = true;
   final Set<String> selected = {};
   String? previewPath;
   bool busy = false;
@@ -23,7 +23,7 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
 
   ProjectShareOptions get options => ProjectShareOptions(
     theme: theme, format: format, beforeNote: beforeNote, afterNote: afterNote,
-    description: description, duringNotes: duringNotes, signature: signature,
+    description: description, duringNotes: duringNotes,
     duringIds: Set.of(selected),
   );
 
@@ -137,8 +137,11 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
           SwitchListTile(title: const Text('Notes des photos Pendant'),
             value: duringNotes, onChanged: (v) => _change(() => duringNotes = v)),
         ],
-        SwitchListTile(title: const Text('Signature Avant / Après'),
-          value: signature, onChanged: (v) => _change(() => signature = v)),
+        const ListTile(
+          leading: Icon(Icons.verified_outlined),
+          title: Text('Signature Avant / Après'),
+          subtitle: Text('Toujours affichée sur les partages'),
+        ),
         const SizedBox(height: 16),
       ]),
     );
