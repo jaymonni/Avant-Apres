@@ -51,6 +51,11 @@ jobs:
           printf '%s' "$V2_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/v2-signing.jks"
           keytool -list -keystore "$RUNNER_TEMP/v2-signing.jks" -storepass "$V2_SIGNING_PASSWORD" -alias avantapres-v2 > /dev/null
 
+      - name: Harmonize V2 launcher icon with sage splash
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 scripts/recolor_v2_icon.py
+
       - name: Build debug APK (stable signature)
         env:
           V2_SIGNING_STORE_FILE: ${{ runner.temp }}/v2-signing.jks
