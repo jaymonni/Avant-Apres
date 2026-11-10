@@ -154,7 +154,6 @@ class _ExpressScreenState extends State<ExpressScreen> {
 
   @override
   void dispose() {
-    _expressAds.dispose();
     _beforeController.dispose();
     _afterController.dispose();
     super.dispose();
