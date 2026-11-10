@@ -8,7 +8,7 @@ class ExpressAdsService {
   ExpressAdsService._();
   static final ExpressAdsService _instance = ExpressAdsService._();
 
-  static const int actionsPerAd = 8;
+  static const int actionsPerAd = 6;
   static const Duration minimumInterval = Duration(minutes: 5);
   static const String _testAdUnitId =
       'ca-app-pub-3940256099942544/1033173712';
