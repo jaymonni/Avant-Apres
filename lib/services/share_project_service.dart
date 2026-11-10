@@ -103,12 +103,14 @@ class ShareProjectService {
       final photoRect = Rect.fromLTWH(x, y + framePadding, innerWidth, photoHeight);
       _cover(canvas, image, photoRect, 10);
       final label = i == 0 ? 'AVANT' : 'APRÈS';
-      final labelRect = Rect.fromLTWH(x + 14, y + framePadding + photoHeight - 54, 132, 40);
+      final labelWidth = label == 'AVANT' ? 88.0 : 92.0;
+      final labelRect = Rect.fromLTWH(
+        x + 10, y + framePadding + photoHeight - 42, labelWidth, 32);
       canvas.drawRRect(
-        RRect.fromRectAndRadius(labelRect, const Radius.circular(10)),
-        Paint()..color = const Color(0xCC222222));
-      _text(canvas, label, labelRect.left + 6, labelRect.top + 7,
-        labelRect.width - 12, 22, Colors.white, bold: true,
+        RRect.fromRectAndRadius(labelRect, const Radius.circular(8)),
+        Paint()..color = const Color(0xB8222222));
+      _text(canvas, label, labelRect.left + 5, labelRect.top + 5,
+        labelRect.width - 10, 18, Colors.white, bold: true,
         align: TextAlign.center);
       final note = i == 0 ? project.beforeNote : project.afterNote;
       if (hasNotes && (i == 0 ? options.beforeNote : options.afterNote) &&
