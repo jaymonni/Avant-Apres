@@ -78,7 +78,7 @@ class ShareProjectService {
     final stepSpace = steps.isNotEmpty ? (steps.length <= 2 ? 260.0 : 350.0) : 0.0;
     final noteSpace = hasNotes ? 100.0 : 0.0;
     final available = h - y - footerSpace - descSpace - stepSpace - noteSpace - 25;
-    final photoHeight = available.clamp(270.0, options.format == ShareFormat.story ? 1000.0 : 740.0);
+    final photoHeight = available.clamp(270.0, options.format == ShareFormat.story ? 1000.0 : 740.0).toDouble();
     final photoY = y;
     for (var i = 0; i < 2; i++) {
       final x = margin + i * (colWidth + gap);
@@ -99,7 +99,7 @@ class ShareProjectService {
       final columns = steps.length == 1 ? 1 : (steps.length == 2 ? 2 : 3);
       final cellW = (w - margin * 2 - gap * (columns - 1)) / columns;
       final rows = (steps.length / columns).ceil();
-      final rowHeight = ((stepSpace - 54) / rows).clamp(95.0, 225.0);
+      final rowHeight = ((stepSpace - 54) / rows).clamp(95.0, 225.0).toDouble();
       for (var i = 0; i < steps.length; i++) {
         final row = i ~/ columns;
         final column = i % columns;
