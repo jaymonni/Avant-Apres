@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
 import '../models/photo_project.dart';
 import '../providers/app_provider.dart';
+import '../services/express_ads_service.dart';
 import 'project_share_screen.dart';
 import '../widgets/before_after_slider.dart';
 import 'crop_image_screen.dart';
@@ -1431,6 +1432,7 @@ class _EditProjectNotesSheetState extends State<_EditProjectNotesSheet> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
+      ExpressAdsService().onCompletedAction();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1629,6 +1631,7 @@ class _EditDuringPhotoSheetState extends State<_EditDuringPhotoSheet> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
+      ExpressAdsService().onCompletedAction();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2150,6 +2153,7 @@ class _CompleteProjectSheetState extends State<_CompleteProjectSheet> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
+      ExpressAdsService().onCompletedAction();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
