@@ -185,11 +185,6 @@ class ShareProjectService {
     image.dispose();
   }
 
-  static void _pill(Canvas canvas, String label, double x, double y, Color accent) {
-    _rounded(canvas, Rect.fromLTWH(x, y, 146, 46), accent, 15);
-    _text(canvas, label, x + 12, y + 8, 122, 24, Colors.white, bold: true, align: TextAlign.center);
-  }
-
   static void _text(Canvas canvas, String text, double x, double y, double width,
       double size, Color color, {bool bold = false, int maxLines = 1, TextAlign align = TextAlign.left}) {
     final painter = TextPainter(
