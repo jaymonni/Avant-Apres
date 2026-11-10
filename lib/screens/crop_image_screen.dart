@@ -10,7 +10,7 @@ class CropImageScreen extends StatefulWidget {
     super.key,
     required this.sourcePath,
     required this.title,
-    this.aspectRatio = 16 / 9,
+    this.aspectRatio = 4 / 5,
   });
 
   final String sourcePath;
@@ -144,9 +144,9 @@ class _CropImageScreenState extends State<CropImageScreen> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(children: [
-                          for (final ratio in <double>[16 / 9, 4 / 5, 1, 3 / 4]) ...[
+                          for (final ratio in <double>[1, 4 / 5, 9 / 16]) ...[
                             ChoiceChip(
-                              label: Text(ratio == 16 / 9 ? '16:9' : ratio == 4 / 5 ? '4:5' : ratio == 1 ? '1:1' : '3:4'),
+                              label: Text(ratio == 1 ? '1:1' : ratio == 4 / 5 ? '4:5' : '9:16'),
                               selected: (_selectedAspectRatio - ratio).abs() < 0.001,
                               onSelected: (_) => _selectRatio(ratio),
                             ),
