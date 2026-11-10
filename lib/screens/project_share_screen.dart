@@ -88,9 +88,6 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
           )),
         if (busy) const LinearProgressIndicator(),
         const SizedBox(height: 18),
-        const Text('Toujours inclus : titre, photos Avant et Après',
-          style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 16),
         const Text('Couleur', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         SingleChildScrollView(
