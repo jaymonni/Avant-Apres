@@ -93,22 +93,47 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
         const SizedBox(height: 16),
         const Text('Couleur', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
-        Wrap(spacing: 12, runSpacing: 10, children: [
-          for (final choice in ShareAccent.values)
-            ChoiceChip(
-              label: Text(switch (choice) {
-                ShareAccent.sage => 'Sauge',
-                ShareAccent.terracotta => 'Terracotta',
-                ShareAccent.blue => 'Bleu doux',
-                ShareAccent.lavender => 'Lavande',
-                ShareAccent.sand => 'Sable',
-                ShareAccent.charcoal => 'Anthracite',
-              }),
-              avatar: CircleAvatar(backgroundColor: choice.color, radius: 10),
-              selected: accent == choice,
-              onSelected: (_) => _change(() => accent = choice),
-            ),
-        ]),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: [
+            for (final choice in ShareAccent.values)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Tooltip(
+                  message: switch (choice) {
+                    ShareAccent.sage => 'Sauge',
+                    ShareAccent.terracotta => 'Terracotta',
+                    ShareAccent.blue => 'Bleu doux',
+                    ShareAccent.lavender => 'Lavande',
+                    ShareAccent.sand => 'Sable',
+                    ShareAccent.charcoal => 'Anthracite',
+                  },
+                  child: Semantics(
+                    label: 'Couleur : ${choice.name}',
+                    selected: accent == choice,
+                    child: InkWell(
+                      onTap: () => _change(() => accent = choice),
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        width: 46, height: 46,
+                        decoration: BoxDecoration(
+                          color: choice.color,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accent == choice ? Colors.black87 : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                        child: accent == choice
+                          ? const Icon(Icons.check, color: Colors.white)
+                          : null,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ]),
+        ),
         const SizedBox(height: 16),
         const Text('Format', style: TextStyle(fontWeight: FontWeight.bold)),
         SegmentedButton<ShareFormat>(
