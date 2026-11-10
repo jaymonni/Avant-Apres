@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_strings.dart';
 import '../models/photo_project.dart';
 import '../providers/app_provider.dart';
-import '../services/share_project_service.dart';
+import 'project_share_screen.dart';
 import '../widgets/before_after_slider.dart';
 import 'crop_image_screen.dart';
 
@@ -89,12 +89,16 @@ class _DetailScreenState extends State<DetailScreen> {
     });
 
     try {
-      await ShareProjectService.shareFinishedProject(
-        project,
-        shareText: _tr(
-          context,
-          'Transformation "${project.title}" créée avec Avant / Après',
-          'Transformation "${project.title}" created with Avant / Après',
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ProjectShareScreen(
+            project: project,
+            shareText: _tr(
+              context,
+              'Transformation "${project.title}" créée avec Avant / Après',
+              'Transformation "${project.title}" created with Avant / Après',
+            ),
+          ),
         ),
       );
     } catch (e) {
