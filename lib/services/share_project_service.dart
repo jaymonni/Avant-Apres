@@ -75,7 +75,6 @@ class ShareProjectService {
     const labelHeight = 0.0;
     const sectionGap = 30.0;
     const framePadding = 10.0;
-    final colWidth = (w - 2 * margin - gap) / 2;
     final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
       (options.afterNote && project.afterNote.trim().isNotEmpty);
     final hasDescription = options.description && project.description.trim().isNotEmpty;
