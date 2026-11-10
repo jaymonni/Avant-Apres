@@ -137,11 +137,6 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
           SwitchListTile(title: const Text('Notes des photos Pendant'),
             value: duringNotes, onChanged: (v) => _change(() => duringNotes = v)),
         ],
-        const ListTile(
-          leading: Icon(Icons.verified_outlined),
-          title: Text('Signature Avant / Après'),
-          subtitle: Text('Toujours affichée sur les partages'),
-        ),
         const SizedBox(height: 16),
       ]),
     );
