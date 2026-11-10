@@ -13,7 +13,7 @@ class ProjectShareScreen extends StatefulWidget {
 }
 
 class _ProjectShareScreenState extends State<ProjectShareScreen> {
-  ShareTheme theme = ShareTheme.modern;
+  ShareAccent accent = ShareAccent.sage;
   ShareFormat format = ShareFormat.portrait;
   bool beforeNote = true, afterNote = true, description = true, duringNotes = true;
   final Set<String> selected = {};
@@ -22,7 +22,7 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
   int generation = 0;
 
   ProjectShareOptions get options => ProjectShareOptions(
-    theme: theme, format: format, beforeNote: beforeNote, afterNote: afterNote,
+    accent: accent, format: format, beforeNote: beforeNote, afterNote: afterNote,
     description: description, duringNotes: duringNotes,
     duringIds: Set.of(selected),
   );
@@ -91,15 +91,24 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
         const Text('Toujours inclus : titre, photos Avant et Après',
           style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 16),
-        const Text('Thème', style: TextStyle(fontWeight: FontWeight.bold)),
-        SegmentedButton<ShareTheme>(
-          segments: const [
-            ButtonSegment(value: ShareTheme.light, label: Text('Clair')),
-            ButtonSegment(value: ShareTheme.modern, label: Text('Moderne')),
-            ButtonSegment(value: ShareTheme.dark, label: Text('Sombre')),
-          ],
-          selected: {theme}, onSelectionChanged: (s) => _change(() => theme = s.first),
-        ),
+        const Text('Couleur', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Wrap(spacing: 12, runSpacing: 10, children: [
+          for (final choice in ShareAccent.values)
+            ChoiceChip(
+              label: Text(switch (choice) {
+                ShareAccent.sage => 'Sauge',
+                ShareAccent.terracotta => 'Terracotta',
+                ShareAccent.blue => 'Bleu doux',
+                ShareAccent.lavender => 'Lavande',
+                ShareAccent.sand => 'Sable',
+                ShareAccent.charcoal => 'Anthracite',
+              }),
+              avatar: CircleAvatar(backgroundColor: choice.color, radius: 10),
+              selected: accent == choice,
+              onSelected: (_) => _change(() => accent = choice),
+            ),
+        ]),
         const SizedBox(height: 16),
         const Text('Format', style: TextStyle(fontWeight: FontWeight.bold)),
         SegmentedButton<ShareFormat>(
