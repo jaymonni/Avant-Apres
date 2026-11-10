@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 
 import 'app.dart';
 import 'providers/app_provider.dart';
+import 'services/express_ads_service.dart';
 import 'theme/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await MobileAds.instance.initialize();
+  ExpressAdsService().load();
 
   final themeController = ThemeController();
   await themeController.load();
