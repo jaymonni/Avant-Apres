@@ -89,7 +89,7 @@ class ShareProjectService {
     final photoHeight = photoBudget.clamp(240.0, 1100.0).toDouble();
 
     _centeredTitle(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
-      Rect.fromLTWH(margin, titleTop, w - margin * 2, titleArea), ink);
+      Rect.fromLTWH(margin, titleTop, w - margin * 2, titleArea), accent);
     double y = titleTop + titleArea;
 
     final frame = RRect.fromRectAndRadius(
@@ -217,7 +217,7 @@ class ShareProjectService {
   static void _centeredTitle(Canvas canvas, String title, Rect area, Color ink) {
     final painter = TextPainter(
       text: TextSpan(text: title, style: TextStyle(
-        fontSize: 52, color: ink, fontWeight: FontWeight.w700, height: 1.18)),
+        fontSize: 52, color: ink, fontWeight: FontWeight.w500, fontStyle: FontStyle.italic, height: 1.18)),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
       maxLines: 2,
