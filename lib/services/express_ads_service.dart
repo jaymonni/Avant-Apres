@@ -1,68 +1,78 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Discreet ads: never block an export, never interrupt photo editing.
+/// Shared, discreet interstitials at natural transitions after completed actions.
+/// Test ads are enabled only in debug builds; production needs its own ad unit.
 class ExpressAdsService {
+  factory ExpressAdsService() => _instance;
+  ExpressAdsService._();
+  static final ExpressAdsService _instance = ExpressAdsService._();
+
+  static const int actionsPerAd = 8;
+  static const Duration minimumInterval = Duration(minutes: 5);
+  static const String _testAdUnitId =
+      'ca-app-pub-3940256099942544/1033173712';
+
   InterstitialAd? _ad;
-  bool _disposed = false;
-  int _successfulExports = 0;
-  DateTime _openedAt = DateTime.now();
+  bool _loading = false;
+  bool _showing = false;
+  int _completedActions = 0;
+  final DateTime _openedAt = DateTime.now();
   DateTime? _lastShownAt;
 
-  // Test-only until a dedicated production interstitial unit is configured.
-  static const _testAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
-
   void load() {
-    if (_disposed || _ad != null) return;
+    if (!kDebugMode || _loading || _showing || _ad != null) return;
+    _loading = true;
     InterstitialAd.load(
       adUnitId: _testAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          if (_disposed) {
-            ad.dispose();
-          } else {
-            _ad = ad;
-          }
+          _loading = false;
+          _ad = ad;
         },
         onAdFailedToLoad: (error) {
-          debugPrint('Express interstitial unavailable: $error');
+          _loading = false;
+          debugPrint('Interstitial test ad unavailable: $error');
         },
       ),
     );
   }
 
-  void onSuccessfulExport() {
-    if (_disposed) return;
-    _successfulExports++;
+  /// Call only after a successful create, complete, save, export or share.
+  /// Never interrupts an editor or a user action in progress.
+  void onCompletedAction() {
+    if (!kDebugMode) return;
+    _completedActions++;
+    load();
+    if (_completedActions < actionsPerAd) return;
     final now = DateTime.now();
-    if (_successfulExports < 3 ||
-        now.difference(_openedAt) < const Duration(minutes: 5) ||
+    if (now.difference(_openedAt) < minimumInterval ||
         (_lastShownAt != null &&
-            now.difference(_lastShownAt!) < const Duration(minutes: 5))) {
+            now.difference(_lastShownAt!) < minimumInterval)) {
       return;
     }
     final ad = _ad;
-    if (ad == null) return;
+    if (ad == null || _showing) return;
     _ad = null;
-    _successfulExports = 0;
-    _lastShownAt = now;
+    _showing = true;
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
+        _showing = false;
         load();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
+        _showing = false;
+        // Keep the count so a later completed action can retry.
         load();
       },
     );
     ad.show();
+    _completedActions = 0;
+    _lastShownAt = now;
   }
 
-  void dispose() {
-    _disposed = true;
-    _ad?.dispose();
-    _ad = null;
-  }
+  void onSuccessfulExport() => onCompletedAction();
 }
