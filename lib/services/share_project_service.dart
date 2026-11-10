@@ -1,320 +1,180 @@
 import 'dart:io';
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../models/photo_project.dart';
 
+enum ShareTheme { light, modern, dark }
+enum ShareFormat { square, portrait, story }
+
+class ProjectShareOptions {
+  const ProjectShareOptions({
+    this.theme = ShareTheme.modern,
+    this.format = ShareFormat.portrait,
+    this.beforeNote = true,
+    this.afterNote = true,
+    this.description = true,
+    this.duringNotes = true,
+    this.signature = true,
+    this.duringIds = const {},
+  });
+  final ShareTheme theme;
+  final ShareFormat format;
+  final bool beforeNote, afterNote, description, duringNotes, signature;
+  final Set<String> duringIds;
+}
+
 class ShareProjectService {
-  static Future<void> shareFinishedProject(
-    PhotoProject project, {
+  static Future<void> shareFinishedProject(PhotoProject project, {
     required String shareText,
+    ProjectShareOptions options = const ProjectShareOptions(),
   }) async {
-    final beforeFile = File(project.beforePath);
-    final afterFile = File(project.afterPath);
-
-    if (!beforeFile.existsSync() || !afterFile.existsSync()) {
-      throw Exception('Fichiers image introuvables');
-    }
-
-    final outputPath = await _buildShareImage(project);
-
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [XFile(outputPath)],
-        text: shareText,
-        subject: project.title,
-      ),
-    );
+    final path = await buildShareImage(project, options);
+    await SharePlus.instance.share(ShareParams(
+      files: [XFile(path)], text: shareText, subject: project.title,
+    ));
   }
 
-  static Future<String> _buildShareImage(PhotoProject project) async {
-    const double canvasWidth = 1200;
-    const double canvasHeight = 1500;
-
-    const double outerPadding = 48;
-    const double topAreaHeight = 180;
-    const double gap = 28;
-    const double labelHeight = 56;
-    const double footerHeight = 70;
-    const double imageRadius = 28;
-    const double cardRadius = 36;
+  static Future<String> buildShareImage(PhotoProject project, ProjectShareOptions options) async {
+    if (!File(project.beforePath).existsSync() || !File(project.afterPath).existsSync()) {
+      throw Exception('Photos Avant / Après introuvables');
+    }
+    const w = 1080.0;
+    final h = switch (options.format) {
+      ShareFormat.square => 1080.0,
+      ShareFormat.portrait => 1350.0,
+      ShareFormat.story => 1920.0,
+    };
+    final bg = switch (options.theme) {
+      ShareTheme.light => const Color(0xFFF7F8FA),
+      ShareTheme.modern => const Color(0xFFEDF2F6),
+      ShareTheme.dark => const Color(0xFF202630),
+    };
+    final card = options.theme == ShareTheme.dark ? const Color(0xFF303945) : Colors.white;
+    final ink = options.theme == ShareTheme.dark ? Colors.white : const Color(0xFF172A3E);
+    final muted = options.theme == ShareTheme.dark ? const Color(0xFFCED6DE) : const Color(0xFF526174);
+    const accent = Color(0xFF113653);
+    final steps = project.duringPhotos.where((p) =>
+      options.duringIds.contains(p.id) && File(p.path).existsSync()).toList();
 
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(
-      recorder,
-      const Rect.fromLTWH(0, 0, canvasWidth, canvasHeight),
-    );
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, w, h));
+    canvas.drawColor(bg, BlendMode.src);
+    const margin = 42.0;
+    const gap = 18.0;
+    final colWidth = (w - 2 * margin - gap) / 2;
+    double y = 40;
+    _text(canvas, project.title.trim().isEmpty ? 'Avant / Après' : project.title,
+      margin, y, w - margin * 2, 46, ink, bold: true, maxLines: 2);
+    y += 112;
 
-    final backgroundPaint = Paint()..color = const Color(0xFFF6F7F9);
-    canvas.drawRect(
-      const Rect.fromLTWH(0, 0, canvasWidth, canvasHeight),
-      backgroundPaint,
-    );
+    final hasNotes = (options.beforeNote && project.beforeNote.trim().isNotEmpty) ||
+        (options.afterNote && project.afterNote.trim().isNotEmpty);
+    final hasDescription = options.description && project.description.trim().isNotEmpty;
+    // Allocate remaining height to photos, steps and explanatory text.
+    final footerSpace = options.signature ? 74.0 : 28.0;
+    final descSpace = hasDescription ? 145.0 : 0.0;
+    final stepSpace = steps.isNotEmpty ? (steps.length <= 2 ? 260.0 : 350.0) : 0.0;
+    final noteSpace = hasNotes ? 100.0 : 0.0;
+    final available = h - y - footerSpace - descSpace - stepSpace - noteSpace - 25;
+    final photoHeight = available.clamp(270.0, options.format == ShareFormat.story ? 1000.0 : 740.0);
+    final photoY = y;
+    for (var i = 0; i < 2; i++) {
+      final x = margin + i * (colWidth + gap);
+      _rounded(canvas, Rect.fromLTWH(x, photoY, colWidth, photoHeight + (hasNotes ? noteSpace : 0)), card, 22);
+      final image = await _load(i == 0 ? project.beforePath : project.afterPath);
+      _cover(canvas, image, Rect.fromLTWH(x, photoY, colWidth, photoHeight - 2), 20);
+      _pill(canvas, i == 0 ? 'AVANT' : 'APRÈS', x + 20, photoY + photoHeight - 66, ink);
+      final note = i == 0 ? project.beforeNote : project.afterNote;
+      if (hasNotes && (i == 0 ? options.beforeNote : options.afterNote) && note.trim().isNotEmpty) {
+        _text(canvas, note, x + 15, photoY + photoHeight + 12, colWidth - 30, 24, muted, maxLines: 3);
+      }
+    }
+    y += photoHeight + (hasNotes ? noteSpace : 0) + 22;
 
-    final cardPaint = Paint()..color = Colors.white;
-    final shadowPaint = Paint()..color = Colors.black.withValues(alpha: 0.05);
-
-    final contentTop = topAreaHeight;
-    final contentHeight =
-        canvasHeight - contentTop - footerHeight - outerPadding;
-    final imageTop = contentTop + labelHeight + 18;
-    final imageHeight = contentHeight - labelHeight - 18;
-
-    final panelWidth = (canvasWidth - outerPadding * 2 - gap) / 2;
-
-    final beforeCardRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        outerPadding,
-        contentTop,
-        panelWidth,
-        contentHeight,
-      ),
-      const Radius.circular(cardRadius),
-    );
-
-    final afterCardRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        outerPadding + panelWidth + gap,
-        contentTop,
-        panelWidth,
-        contentHeight,
-      ),
-      const Radius.circular(cardRadius),
-    );
-
-    canvas.drawRRect(beforeCardRect.shift(const Offset(0, 8)), shadowPaint);
-    canvas.drawRRect(afterCardRect.shift(const Offset(0, 8)), shadowPaint);
-
-    canvas.drawRRect(beforeCardRect, cardPaint);
-    canvas.drawRRect(afterCardRect, cardPaint);
-
-    final beforeImage = await _loadUiImage(project.beforePath);
-    final afterImage = await _loadUiImage(project.afterPath);
-
-    final beforeImageRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        outerPadding + 16,
-        imageTop,
-        panelWidth - 32,
-        imageHeight - 16,
-      ),
-      const Radius.circular(imageRadius),
-    );
-
-    final afterImageRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        outerPadding + panelWidth + gap + 16,
-        imageTop,
-        panelWidth - 32,
-        imageHeight - 16,
-      ),
-      const Radius.circular(imageRadius),
-    );
-
-    _drawCoverImage(canvas, beforeImage, beforeImageRect.outerRect);
-    _drawCoverImage(canvas, afterImage, afterImageRect.outerRect);
-
-    _drawImageMask(canvas, beforeImageRect);
-    _drawImageMask(canvas, afterImageRect);
-
-    _drawTitle(
-      canvas,
-      text: project.title.trim().isEmpty ? 'Avant / Après' : project.title.trim(),
-      width: canvasWidth,
-      top: 56,
-    );
-
-    _drawPill(
-      canvas,
-      rect: Rect.fromLTWH(
-        outerPadding + 16,
-        contentTop + 16,
-        140,
-        42,
-      ),
-      text: 'AVANT',
-      background: const Color(0xFFEAF2FF),
-      foreground: const Color(0xFF2457D6),
-    );
-
-    _drawPill(
-      canvas,
-      rect: Rect.fromLTWH(
-        outerPadding + panelWidth + gap + 16,
-        contentTop + 16,
-        140,
-        42,
-      ),
-      text: 'APRÈS',
-      background: const Color(0xFFE8FAEF),
-      foreground: const Color(0xFF1E8E4A),
-    );
-
-    _drawFooter(
-      canvas,
-      text: 'Créé avec Avant / Après',
-      width: canvasWidth,
-      top: canvasHeight - footerHeight,
-    );
-
-    final picture = recorder.endRecording();
-    final image = await picture.toImage(
-      canvasWidth.toInt(),
-      canvasHeight.toInt(),
-    );
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    if (byteData == null) {
-      throw Exception('Impossible de générer l’image de partage');
+    if (steps.isNotEmpty) {
+      _text(canvas, 'LES ÉTAPES', margin, y, w - margin * 2, 28, ink, bold: true);
+      y += 44;
+      final columns = steps.length == 1 ? 1 : (steps.length == 2 ? 2 : 3);
+      final cellW = (w - margin * 2 - gap * (columns - 1)) / columns;
+      final rows = (steps.length / columns).ceil();
+      final rowHeight = ((stepSpace - 54) / rows).clamp(95.0, 225.0);
+      for (var i = 0; i < steps.length; i++) {
+        final row = i ~/ columns;
+        final column = i % columns;
+        final x = margin + column * (cellW + gap);
+        final top = y + row * rowHeight;
+        final noteH = options.duringNotes && steps[i].note.trim().isNotEmpty ? 48.0 : 0.0;
+        final imgH = rowHeight - noteH - 10;
+        final image = await _load(steps[i].path);
+        _cover(canvas, image, Rect.fromLTWH(x, top, cellW, imgH), 12);
+        if (noteH > 0) _text(canvas, steps[i].note, x + 4, top + imgH + 5, cellW - 8, 19, muted, maxLines: 2);
+      }
+      y += rows * rowHeight + 14;
     }
 
-    final tempDir = await getTemporaryDirectory();
-    final file = File(
-      '${tempDir.path}/share_${project.id}_${DateTime.now().millisecondsSinceEpoch}.png',
-    );
+    if (hasDescription) {
+      _text(canvas, 'LA TRANSFORMATION', margin, y, w - 2 * margin, 27, ink, bold: true);
+      y += 40;
+      _text(canvas, project.description, margin, y, w - 2 * margin, 25, muted, maxLines: 4);
+    }
 
-    await file.writeAsBytes(byteData.buffer.asUint8List(), flush: true);
+    if (options.signature) {
+      canvas.drawRect(Rect.fromLTWH(0, h - 62, w, 62), Paint()..color = accent);
+      _text(canvas, 'Créé avec Avant / Après', margin, h - 48, w - 2 * margin, 24, Colors.white,
+        bold: true, align: TextAlign.right);
+    }
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(w.toInt(), h.toInt());
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    picture.dispose();
+    if (bytes == null) throw Exception('Impossible de générer le partage');
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/project_share_${DateTime.now().microsecondsSinceEpoch}.png');
+    await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
     return file.path;
   }
 
-  static Future<ui.Image> _loadUiImage(String path) async {
+  static Future<ui.Image> _load(String path) async {
     final bytes = await File(path).readAsBytes();
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
+    codec.dispose();
     return frame.image;
   }
 
-  static void _drawCoverImage(Canvas canvas, ui.Image image, Rect dstRect) {
-    final srcWidth = image.width.toDouble();
-    final srcHeight = image.height.toDouble();
+  static void _rounded(Canvas canvas, Rect r, Color color, double radius) {
+    canvas.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(radius)), Paint()..color = color);
+  }
 
-    final srcRatio = srcWidth / srcHeight;
-    final dstRatio = dstRect.width / dstRect.height;
-
-    Rect srcRect;
-
-    if (srcRatio > dstRatio) {
-      final newWidth = srcHeight * dstRatio;
-      final left = (srcWidth - newWidth) / 2;
-      srcRect = Rect.fromLTWH(left, 0, newWidth, srcHeight);
-    } else {
-      final newHeight = srcWidth / dstRatio;
-      final top = (srcHeight - newHeight) / 2;
-      srcRect = Rect.fromLTWH(0, top, srcWidth, newHeight);
-    }
-
+  static void _cover(Canvas canvas, ui.Image image, Rect dest, double radius) {
+    final iw = image.width.toDouble(), ih = image.height.toDouble();
+    final ratio = dest.width / dest.height;
+    final src = iw / ih > ratio
+      ? Rect.fromLTWH((iw - ih * ratio) / 2, 0, ih * ratio, ih)
+      : Rect.fromLTWH(0, (ih - iw / ratio) / 2, iw, iw / ratio);
     canvas.save();
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(dstRect, const Radius.circular(28)),
-    );
-    canvas.drawImageRect(image, srcRect, dstRect, Paint());
+    canvas.clipRRect(RRect.fromRectAndRadius(dest, Radius.circular(radius)));
+    canvas.drawImageRect(image, src, dest, Paint()..filterQuality = FilterQuality.high);
     canvas.restore();
+    image.dispose();
   }
 
-  static void _drawImageMask(Canvas canvas, RRect rect) {
-    final borderPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.06)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    canvas.drawRRect(rect, borderPaint);
+  static void _pill(Canvas canvas, String label, double x, double y, Color ink) {
+    _rounded(canvas, Rect.fromLTWH(x, y, 146, 46), const Color(0xFF113653), 15);
+    _text(canvas, label, x + 12, y + 8, 122, 24, Colors.white, bold: true, align: TextAlign.center);
   }
 
-  static void _drawTitle(
-    Canvas canvas, {
-    required String text,
-    required double width,
-    required double top,
-  }) {
+  static void _text(Canvas canvas, String text, double x, double y, double width,
+      double size, Color color, {bool bold = false, int maxLines = 1, TextAlign align = TextAlign.left}) {
     final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Color(0xFF111827),
-          fontSize: 42,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-      maxLines: 2,
-      ellipsis: '…',
-    );
-
-    painter.layout(maxWidth: width - 120);
-
-    painter.paint(
-      canvas,
-      Offset((width - painter.width) / 2, top),
-    );
-  }
-
-  static void _drawFooter(
-    Canvas canvas, {
-    required String text,
-    required double width,
-    required double top,
-  }) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: Colors.black.withValues(alpha: 0.45),
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-      ellipsis: '…',
-    );
-
-    painter.layout(maxWidth: width - 120);
-
-    painter.paint(
-      canvas,
-      Offset((width - painter.width) / 2, top + 12),
-    );
-  }
-
-  static void _drawPill(
-    Canvas canvas, {
-    required Rect rect,
-    required String text,
-    required Color background,
-    required Color foreground,
-  }) {
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(999));
-
-    final paint = Paint()..color = background;
-    canvas.drawRRect(rrect, paint);
-
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: foreground,
-          fontSize: 22,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.6,
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    );
-
-    painter.layout(maxWidth: rect.width - 24);
-    painter.paint(
-      canvas,
-      Offset(
-        rect.left + (rect.width - painter.width) / 2,
-        rect.top + (rect.height - painter.height) / 2,
-      ),
-    );
+      text: TextSpan(text: text, style: TextStyle(fontSize: size, color: color,
+        fontWeight: bold ? FontWeight.w800 : FontWeight.w500, height: 1.22)),
+      textDirection: TextDirection.ltr, textAlign: align, maxLines: maxLines, ellipsis: '…',
+    )..layout(maxWidth: width);
+    painter.paint(canvas, Offset(x, y));
+    painter.dispose();
   }
 }
