@@ -64,12 +64,15 @@ class _ExpressScreenState extends State<ExpressScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       showDragHandle: true,
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, updateSheet) => Padding(
-          padding: EdgeInsets.fromLTRB(20, 8, 20,
-            MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
-          child: SingleChildScrollView(child: Column(
+          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(sheetContext).bottom),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.85),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Flexible(child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -114,8 +117,12 @@ class _ExpressScreenState extends State<ExpressScreen> {
               Slider(value: fontSize, min: 10, max: 24, divisions: 7,
                 label: fontSize.round().toString(),
                 onChanged: (value) => updateSheet(() => fontSize = value)),
-              const SizedBox(height: 16),
-              SizedBox(width: double.infinity, child: FilledButton(
+              const SizedBox(height: 8),
+            ],
+          ))),
+              Padding(padding: EdgeInsets.fromLTRB(20, 8, 20,
+                MediaQuery.paddingOf(sheetContext).bottom + 12),
+                child: SizedBox(width: double.infinity, child: FilledButton(
                 onPressed: () {
                   setState(() {
                     _beforeLabel = beforeText.trim().isEmpty
@@ -129,7 +136,7 @@ class _ExpressScreenState extends State<ExpressScreen> {
                   Navigator.pop(sheetContext);
                 },
                 child: Text(_tr('Appliquer', 'Apply', 'Aplicar', 'Aplicar')),
-              )),
+              ))),
             ],
           )),
         ),
