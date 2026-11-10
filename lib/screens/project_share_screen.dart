@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/photo_project.dart';
 import '../services/share_project_service.dart';
+import '../services/express_ads_service.dart';
 
 class ProjectShareScreen extends StatefulWidget {
   const ProjectShareScreen({super.key, required this.project, required this.shareText});
@@ -58,6 +59,7 @@ class _ProjectShareScreenState extends State<ProjectShareScreen> {
     try {
       await ShareProjectService.shareFinishedProject(widget.project,
         shareText: widget.shareText, options: options);
+      ExpressAdsService().onCompletedAction();
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur de partage : $e')));
     } finally {
