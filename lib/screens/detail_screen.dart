@@ -98,6 +98,8 @@ class _DetailScreenState extends State<DetailScreen> {
               context,
               'Transformation "${project.title}" créée avec Avant / Après',
               'Transformation "${project.title}" created with Avant / Après',
+              'Transformación "${project.title}" creada con Antes / Después',
+              'Transformação "${project.title}" criada com Antes / Depois',
             ),
           ),
         ),
