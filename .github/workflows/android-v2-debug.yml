@@ -28,6 +28,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.35.7'
           cache: true
 
       - name: Flutter version
@@ -60,7 +61,7 @@ jobs:
         env:
           V2_SIGNING_STORE_FILE: ${{ runner.temp }}/v2-signing.jks
           V2_SIGNING_PASSWORD: ${{ secrets.V2_SIGNING_PASSWORD }}
-        run: flutter build apk --debug --android-skip-build-dependency-validation
+        run: flutter build apk --debug
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
