@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// Shared, discreet interstitials at natural transitions after completed actions.
-/// Test ads are enabled only in debug builds; production needs its own ad unit.
+/// Debug uses Google's test unit; Android release uses the production unit.
 class ExpressAdsService {
   factory ExpressAdsService() => _instance;
   ExpressAdsService._();
@@ -13,6 +14,12 @@ class ExpressAdsService {
   static const String _testAdUnitId =
       'ca-app-pub-3940256099942544/1033173712';
 
+  static const String _productionAdUnitId =
+      'ca-app-pub-6335107042829950/8099311749';
+
+  bool get _supported => Platform.isAndroid;
+  String get _adUnitId => kReleaseMode ? _productionAdUnitId : _testAdUnitId;
+
   InterstitialAd? _ad;
   bool _loading = false;
   bool _showing = false;
@@ -21,10 +28,10 @@ class ExpressAdsService {
   DateTime? _lastShownAt;
 
   void load() {
-    if (!kDebugMode || _loading || _showing || _ad != null) return;
+    if (!_supported || _loading || _showing || _ad != null) return;
     _loading = true;
     InterstitialAd.load(
-      adUnitId: _testAdUnitId,
+      adUnitId: _adUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
@@ -33,7 +40,7 @@ class ExpressAdsService {
         },
         onAdFailedToLoad: (error) {
           _loading = false;
-          debugPrint('Interstitial test ad unavailable: $error');
+          debugPrint('Interstitial ad unavailable: $error');
         },
       ),
     );
@@ -42,7 +49,7 @@ class ExpressAdsService {
   /// Call only after a successful create, complete, save, export or share.
   /// Never interrupts an editor or a user action in progress.
   void onCompletedAction() {
-    if (!kDebugMode) return;
+    if (!_supported) return;
     _completedActions++;
     load();
     if (_completedActions < actionsPerAd) return;
