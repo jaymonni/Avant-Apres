@@ -62,11 +62,13 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
             if (v2Store != null && v2Password != null) {
                 signingConfig = signingConfigs.getByName("v2Debug")
             }
         }
         getByName("release") {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-6335107042829950~9167630968"
             signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
