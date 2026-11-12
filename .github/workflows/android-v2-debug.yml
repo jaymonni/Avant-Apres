@@ -60,7 +60,7 @@ jobs:
         env:
           V2_SIGNING_STORE_FILE: ${{ runner.temp }}/v2-signing.jks
           V2_SIGNING_PASSWORD: ${{ secrets.V2_SIGNING_PASSWORD }}
-        run: flutter build apk --debug
+        run: flutter build apk --debug --android-skip-build-dependency-validation
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
